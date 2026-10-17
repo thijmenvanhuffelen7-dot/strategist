@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:artifact": "tsc -b && vite build --mode artifact --outDir dist-artifact && node scripts/build-artifact.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.4",

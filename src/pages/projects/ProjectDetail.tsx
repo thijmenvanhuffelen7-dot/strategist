@@ -5,6 +5,7 @@ import { useDeleteProject, useProject } from '../../lib/projects'
 import { doelLabel, type Project } from '../../lib/types'
 import { countEntries } from '../../lib/klantdata'
 import { Button, EmptyState, ErrorBox, Pill, Spinner } from '../../components/ui'
+import { useConfirm } from '../../components/ConfirmDialog'
 
 const DREMPEL_LABELS: Record<string, string> = { hook_rate: 'Hook rate ≥ %', hold_rate: 'Hold rate ≥ %', ctr: 'CTR ≥ %', cpa: 'CPA ≤ €', roas: 'ROAS ≥ x' }
 
@@ -24,13 +25,20 @@ export function ProjectDetail() {
   const tab = params.get('tab') ?? 'overzicht'
   const { data: project, isLoading, error, refetch } = useProject(id)
   const del = useDeleteProject()
+  const confirm = useConfirm()
 
   if (isLoading) return <Spinner />
   if (error) return <ErrorBox error={error} onRetry={() => refetch()} />
   if (!project) return null
 
   const remove = async () => {
-    if (!confirm(`Project “${project.naam}” en alle bijbehorende onderzoek, angles, briefs en tests verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return
+    const ok = await confirm({
+      title: `“${project.naam}” verwijderen?`,
+      message: 'Ook alle bijbehorende onderzoek, angles, hooks, briefs en tests worden verwijderd. Dit kan niet ongedaan worden gemaakt.',
+      confirmLabel: 'Verwijderen',
+      danger: true,
+    })
+    if (!ok) return
     await del.mutateAsync(project.id)
     navigate('/projecten')
   }

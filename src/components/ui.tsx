@@ -1,13 +1,14 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 import { Loader2, AlertTriangle } from 'lucide-react'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerSolid'
 
 const variants: Record<Variant, string> = {
   primary: 'bg-accent-600 text-white hover:bg-accent-700 shadow-sm',
   secondary:
     'border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800',
   ghost: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+  dangerSolid: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
   danger: 'border border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-950/40',
 }
 
@@ -19,8 +20,10 @@ export function Button({
   children,
   className = '',
   disabled,
+  ref,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
+  ref?: Ref<HTMLButtonElement>
   variant?: Variant
   size?: 'sm' | 'md'
   loading?: boolean
@@ -30,6 +33,7 @@ export function Button({
   return (
     <button
       {...rest}
+      ref={ref}
       disabled={disabled || loading}
       className={`inline-flex shrink-0 items-center justify-center rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${sizes} ${variants[variant]} ${className}`}
     >

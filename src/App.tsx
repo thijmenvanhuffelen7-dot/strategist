@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, MemoryRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { FileText, Bookmark, FlaskConical } from 'lucide-react'
 import { Layout } from './components/Layout'
 import { Dashboard } from './pages/Dashboard'
@@ -8,9 +8,12 @@ import { ProjectDetail } from './pages/projects/ProjectDetail'
 import { Settings } from './pages/Settings'
 import { Placeholder } from './pages/Placeholder'
 
+// Als ingesloten webpagina (claude.ai) blijft de routering intern; lokaal gebruiken we echte URL's.
+const Router = import.meta.env.MODE === 'artifact' ? MemoryRouter : BrowserRouter
+
 export function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
@@ -47,6 +50,6 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </Router>
   )
 }

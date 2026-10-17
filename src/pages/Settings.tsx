@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Download, Upload, HardDrive } from 'lucide-react'
+import { Download, Upload, HardDrive, Copy, ClipboardPaste } from 'lucide-react'
 import { useProfile, useUpdateProfile } from '../lib/profile'
 import { useTheme, type ThemeChoice } from '../lib/theme'
 import { PLATFORMS, TALEN } from '../lib/types'
 import { db } from '../lib/db'
 import { Button, ErrorBox, PageHeader } from '../components/ui'
+import { useConfirm } from '../components/ConfirmDialog'
 
 export function Settings() {
   const { data: profile } = useProfile()
@@ -83,18 +84,23 @@ export function Settings() {
   )
 }
 
+const IS_ARTIFACT = import.meta.env.MODE === 'artifact'
+
 function Backup() {
   const qc = useQueryClient()
+  const confirm = useConfirm()
   const fileRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [error, setError] = useState<unknown>(null)
+  const [pasteOpen, setPasteOpen] = useState(false)
+  const [pasted, setPasted] = useState('')
+
+  const backupJson = async () =>
+    JSON.stringify({ app: 'strategist-os', versie: 1, gemaakt_op: new Date().toISOString(), data: await db.exportAll() })
 
   const download = async () => {
-    const data = await db.exportAll()
-    const blob = new Blob([JSON.stringify({ app: 'strategist-os', versie: 1, gemaakt_op: new Date().toISOString(), data }, null, 2)], {
-      type: 'application/json',
-    })
+    const blob = new Blob([await backupJson()], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = `strategist-os-backup-${new Date().toISOString().slice(0, 10)}.json`
@@ -102,20 +108,41 @@ function Backup() {
     URL.revokeObjectURL(a.href)
   }
 
-  const restore = async (file: File | undefined) => {
-    if (!file) return
+  const copy = async () => {
+    setError(null)
+    // De tekst eerst ophalen en daarna direct kopiëren, binnen dezelfde klik.
+    const json = await backupJson()
+    try {
+      await navigator.clipboard.writeText(json)
+      setMsg('Back-up gekopieerd. Plak hem in een notitie of tekstbestand om te bewaren.')
+    } catch {
+      setPasted(json)
+      setPasteOpen(true)
+      setMsg('Kopiëren werd geblokkeerd. Selecteer de tekst hieronder en kopieer hem zelf.')
+    }
+  }
+
+  const restore = async (text: string) => {
     setError(null)
     setMsg(null)
     try {
-      const parsed = JSON.parse(await file.text())
-      if (parsed?.app !== 'strategist-os' || typeof parsed.data !== 'object') throw new Error('Dit is geen geldig Strategist OS-back-upbestand.')
-      if (!confirm('Back-up terugzetten? Alle huidige data in deze browser wordt vervangen.')) return
+      const parsed = JSON.parse(text)
+      if (parsed?.app !== 'strategist-os' || typeof parsed.data !== 'object') throw new Error('Dit is geen geldige Strategist OS-back-up.')
+      const ok = await confirm({
+        title: 'Back-up terugzetten?',
+        message: 'Alle huidige data in deze browser wordt vervangen door de back-up.',
+        confirmLabel: 'Terugzetten',
+        danger: true,
+      })
+      if (!ok) return
       setBusy(true)
       await db.importAll(parsed.data)
       await qc.invalidateQueries()
+      setPasted('')
+      setPasteOpen(false)
       setMsg('Back-up teruggezet.')
     } catch (e) {
-      setError(e)
+      setError(e instanceof SyntaxError ? new Error('De tekst is geen geldige back-up (ongeldige JSON).') : e)
     } finally {
       setBusy(false)
       if (fileRef.current) fileRef.current.value = ''
@@ -129,17 +156,43 @@ function Backup() {
       </h2>
       <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
         Al je data staat lokaal in deze browser, op dit apparaat. Er is geen account en niets gaat naar een server. Wis je je browserdata of wil
-        je naar een ander apparaat, download dan eerst een back-up en zet die daar terug.
+        je naar een ander apparaat, maak dan eerst een back-up en zet die daar terug.
       </p>
       <div className="flex flex-wrap gap-2">
-        <Button icon={<Download className="size-4" />} onClick={download}>
-          Back-up downloaden
+        {!IS_ARTIFACT && (
+          <Button icon={<Download className="size-4" />} onClick={download}>
+            Back-up downloaden
+          </Button>
+        )}
+        <Button icon={<Copy className="size-4" />} onClick={copy}>
+          Back-up kopiëren
         </Button>
-        <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => restore(e.target.files?.[0])} />
+        <input ref={fileRef} type="file" accept="application/json,.json,.txt" className="hidden" onChange={async (e) => {
+          const f = e.target.files?.[0]
+          if (f) await restore(await f.text())
+        }} />
         <Button icon={<Upload className="size-4" />} loading={busy} onClick={() => fileRef.current?.click()}>
-          Back-up terugzetten
+          Terugzetten uit bestand
+        </Button>
+        <Button icon={<ClipboardPaste className="size-4" />} onClick={() => setPasteOpen((v) => !v)}>
+          Terugzetten uit tekst
         </Button>
       </div>
+      {pasteOpen && (
+        <div className="space-y-2">
+          <textarea
+            id="backup-tekst"
+            className="input min-h-32 font-mono text-xs"
+            placeholder="Plak hier je back-up…"
+            value={pasted}
+            onChange={(e) => setPasted(e.target.value)}
+            onFocus={(e) => e.target.select()}
+          />
+          <Button variant="primary" size="sm" disabled={!pasted.trim()} loading={busy} onClick={() => restore(pasted)}>
+            Deze back-up terugzetten
+          </Button>
+        </div>
+      )}
       {msg && <p className="text-sm text-emerald-600 dark:text-emerald-400">{msg}</p>}
       {error != null && <ErrorBox error={error} />}
     </div>

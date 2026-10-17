@@ -21,10 +21,19 @@ npm install
 npm run dev      # http://localhost:5173
 ```
 
+## Online versie (claude.ai)
+
+```bash
+npm run build:artifact   # → artifact/strategist-os.html (één zelfstandig bestand)
+```
+
+Dit bestand wordt gepubliceerd als privé claude.ai-pagina. Daar is de routering intern (MemoryRouter)
+en vervangt "Back-up kopiëren" het downloaden, omdat downloads daar geblokkeerd zijn.
+
 ## Opslag
 
 Alle data (projecten, onderzoek, briefs, media, …) staat lokaal in je browser, per apparaat.
-Via **Instellingen → Opslag en back-up** download je een JSON-back-up en zet je die terug,
+Via **Instellingen → Opslag en back-up** maak je een back-up (downloaden of kopiëren) en zet je die terug,
 bijvoorbeeld om naar een ander apparaat over te stappen. Browserdata wissen = data kwijt, dus maak regelmatig een back-up.
 
 ## Sneltoetsen

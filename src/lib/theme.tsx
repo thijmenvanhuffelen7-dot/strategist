@@ -20,13 +20,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const mq = matchMedia('(prefers-color-scheme: dark)')
+    const root = document.documentElement
     const apply = () => {
-      const dark = theme === 'dark' || (theme === 'system' && mq.matches)
-      document.documentElement.classList.toggle('dark', dark)
+      const host = root.getAttribute('data-theme')
+      const systemDark = host ? host === 'dark' : mq.matches
+      root.classList.toggle('dark', theme === 'dark' || (theme === 'system' && systemDark))
     }
     apply()
     mq.addEventListener('change', apply)
-    return () => mq.removeEventListener('change', apply)
+    const obs = new MutationObserver(apply)
+    obs.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => {
+      mq.removeEventListener('change', apply)
+      obs.disconnect()
+    }
   }, [theme])
 
   const setTheme = (t: ThemeChoice) => {
