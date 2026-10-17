@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { supabase } from './supabase'
+import { db, newId } from './db'
 import type { Project, ProjectInput } from './types'
 import { voorbeeldProject } from './sampleData'
 
@@ -27,12 +27,8 @@ export function useProjects() {
   return useQuery({
     queryKey: KEY,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('bijgewerkt_op', { ascending: false })
-      if (error) throw error
-      return data as Project[]
+      const all = await db.list<Project>('projects')
+      return all.sort((a, b) => b.bijgewerkt_op.localeCompare(a.bijgewerkt_op))
     },
   })
 }
@@ -42,9 +38,9 @@ export function useProject(id: string | undefined) {
     queryKey: [...KEY, id],
     enabled: Boolean(id),
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('*').eq('id', id!).single()
-      if (error) throw error
-      return data as Project
+      const p = await db.get<Project>('projects', id!)
+      if (!p) throw new Error('Project niet gevonden')
+      return p
     },
   })
 }
@@ -53,12 +49,14 @@ export function useSaveProject() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, values }: { id?: string; values: ProjectInput }) => {
-      const query = id
-        ? supabase.from('projects').update(values).eq('id', id)
-        : supabase.from('projects').insert(values)
-      const { data, error } = await query.select().single()
-      if (error) throw error
-      return data as Project
+      const now = new Date().toISOString()
+      const existing = id ? await db.get<Project>('projects', id) : undefined
+      return db.put<Project>('projects', {
+        ...values,
+        id: existing?.id ?? newId(),
+        aangemaakt_op: existing?.aangemaakt_op ?? now,
+        bijgewerkt_op: now,
+      })
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   })
@@ -67,11 +65,12 @@ export function useSaveProject() {
 export function useDeleteProject() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('projects').delete().eq('id', id)
-      if (error) throw error
+    mutationFn: (id: string) => db.removeProject(id),
+    onSuccess: (_, id) => {
+      qc.setQueryData<Project[]>(KEY, (old) => old?.filter((p) => p.id !== id))
+      qc.removeQueries({ queryKey: [...KEY, id] })
+      return qc.invalidateQueries()
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }
 

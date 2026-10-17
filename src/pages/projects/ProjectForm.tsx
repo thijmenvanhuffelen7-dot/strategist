@@ -32,7 +32,7 @@ export function ProjectForm() {
     if (isNew) {
       if (!profilePending) setValues(emptyProject(profile?.standaard_taal, profile?.standaard_platform))
     } else if (existing) {
-      const { id: _id, user_id: _u, aangemaakt_op: _a, bijgewerkt_op: _b, ...rest } = existing
+      const { id: _id, aangemaakt_op: _a, bijgewerkt_op: _b, ...rest } = existing
       setValues(rest)
     }
   }, [isNew, existing, profile, profilePending, values])

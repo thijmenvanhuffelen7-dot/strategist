@@ -26,7 +26,6 @@ export interface Drempels {
 
 export interface Project {
   id: string
-  user_id: string
   naam: string
   omschrijving: string | null
   prijs: string | null
@@ -44,7 +43,7 @@ export interface Project {
   bijgewerkt_op: string
 }
 
-export type ProjectInput = Omit<Project, 'id' | 'user_id' | 'aangemaakt_op' | 'bijgewerkt_op'>
+export type ProjectInput = Omit<Project, 'id' | 'aangemaakt_op' | 'bijgewerkt_op'>
 
 export interface Profile {
   id: string

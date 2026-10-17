@@ -13,9 +13,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  LogOut,
 } from 'lucide-react'
-import { useAuth } from '../auth/AuthProvider'
+import { useProfile } from '../lib/profile'
 import { useTheme, type ThemeChoice } from '../lib/theme'
 import { isTypingTarget, triggerNew } from '../lib/shortcuts'
 import { SearchPalette } from './SearchPalette'
@@ -88,7 +87,7 @@ export function Layout() {
 }
 
 function Sidebar({ onSearch, onClose }: { onSearch: () => void; onClose: () => void }) {
-  const { user, signOut } = useAuth()
+  const { data: profile } = useProfile()
   return (
     <>
       <div className="flex h-14 items-center gap-2.5 px-4">
@@ -132,15 +131,12 @@ function Sidebar({ onSearch, onClose }: { onSearch: () => void; onClose: () => v
 
       <div className="border-t border-zinc-200 p-3 dark:border-zinc-800">
         <ThemeSwitch />
-        <div className="mt-3 flex items-center gap-2">
+        <NavLink to="/instellingen" className="mt-3 flex items-center gap-2 rounded-md p-1 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60">
           <div className="flex size-7 items-center justify-center rounded-full bg-zinc-200 text-xs font-medium uppercase dark:bg-zinc-800">
-            {user?.email?.[0]}
+            {profile?.naam?.[0] ?? '?'}
           </div>
-          <span className="min-w-0 flex-1 truncate text-xs text-zinc-500">{user?.email}</span>
-          <button onClick={signOut} className="rounded p-1.5 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100" title="Uitloggen">
-            <LogOut className="size-4" />
-          </button>
-        </div>
+          <span className="min-w-0 flex-1 truncate text-xs text-zinc-500">{profile?.naam || 'Lokaal profiel'}</span>
+        </NavLink>
         <p className="mt-3 hidden text-[11px] text-zinc-400 lg:block">
           <span className="kbd">N</span> nieuw · <span className="kbd">/</span> zoeken
         </p>

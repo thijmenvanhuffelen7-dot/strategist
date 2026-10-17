@@ -1,28 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { supabase } from './supabase'
+import { db } from './db'
 import type { Profile } from './types'
-import { useAuth } from '../auth/AuthProvider'
+
+const DEFAULT_PROFILE: Profile = {
+  id: 'profile',
+  naam: null,
+  standaard_taal: 'Nederlands',
+  standaard_platform: 'Meta',
+  drempels: { hook_rate: 30, hold_rate: 10, ctr: 1, cpa: 30, roas: 2 },
+  tag_lijsten: {},
+}
 
 export function useProfile() {
-  const { user } = useAuth()
   return useQuery({
-    queryKey: ['profile', user?.id],
-    enabled: Boolean(user),
-    queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', user!.id).maybeSingle()
-      if (error) throw error
-      return data as Profile | null
-    },
+    queryKey: ['profile'],
+    queryFn: async () => ({ ...DEFAULT_PROFILE, ...(await db.get<Profile>('meta', 'profile')) }),
   })
 }
 
 export function useUpdateProfile() {
   const qc = useQueryClient()
-  const { user } = useAuth()
   return useMutation({
     mutationFn: async (values: Partial<Profile>) => {
-      const { error } = await supabase.from('profiles').upsert({ id: user!.id, ...values })
-      if (error) throw error
+      const current = { ...DEFAULT_PROFILE, ...(await db.get<Profile>('meta', 'profile')) }
+      await db.put('meta', { ...current, ...values, id: 'profile' })
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['profile'] }),
   })

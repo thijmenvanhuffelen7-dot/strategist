@@ -1,9 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { FileText, Bookmark, FlaskConical } from 'lucide-react'
-import { useAuth } from './auth/AuthProvider'
-import { LoginPage, NewPasswordPage } from './auth/LoginPage'
 import { Layout } from './components/Layout'
-import { Spinner } from './components/ui'
 import { Dashboard } from './pages/Dashboard'
 import { ProjectsList } from './pages/projects/ProjectsList'
 import { ProjectForm } from './pages/projects/ProjectForm'
@@ -12,12 +9,6 @@ import { Settings } from './pages/Settings'
 import { Placeholder } from './pages/Placeholder'
 
 export function App() {
-  const { session, loading, recovery, clearRecovery } = useAuth()
-
-  if (loading) return <Spinner />
-  if (recovery) return <NewPasswordPage onDone={clearRecovery} />
-  if (!session) return <LoginPage />
-
   return (
     <BrowserRouter>
       <Routes>
