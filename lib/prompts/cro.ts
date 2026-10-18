@@ -20,7 +20,8 @@ Regels:
 - Elk punt is concreet en specifiek voor DEZE pagina. Citeer letterlijk wat er nu staat als bewijs (of benoem dat iets ontbreekt).
 - Geef bij elk punt een kant-en-klare voorbeeldtekst (nieuwe kop, knoptekst, garantiezin, FAQ-antwoord …) in de taal van de pagina.
 - Schat per punt de impact op conversie en de moeite (hoog, midden of laag). Wees eerlijk: niet alles is hoge impact.
-- Je ziet alleen tekst, geen ontwerp, afbeeldingen of laadsnelheid. Doe daar geen uitspraken over, of markeer ze met [AANNAME].
+- Zijn er visuele observaties van screenshots meegestuurd, beoordeel dan ook het ontwerp (opvallendheid van de knop, hiërarchie, wat boven de vouw staat, mobiel). Zonder screenshots zie je alleen tekst: doe dan geen uitspraken over ontwerp of afbeeldingen, of markeer ze met [AANNAME]. Over laadsnelheid doe je nooit uitspraken.
+- Geef bij elk punt de bron: "tekst", of het screenshot waar het op gebaseerd is (bijv. "screenshot mobiel").
 - Geef 8 tot 15 punten, een top 3 quick wins (hoge impact, lage moeite) en 3 tot 5 A/B-testideeën met een toetsbare hypothese.
 - Score: 1 tot 10 voor hoe goed de pagina nu converteert op basis van de tekst.
 - Schrijf de analyse in het Nederlands.`

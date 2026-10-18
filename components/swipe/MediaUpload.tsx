@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Upload, Trash2 } from 'lucide-react'
 import { Button } from '../ui'
 import { Media } from './Media'
@@ -54,6 +54,16 @@ export function MediaUpload({
       if (ref.current) ref.current.value = ''
     }
   }
+
+  // Bestand gekozen vóórdat de pagina klaar was met laden? Dan alsnog overnemen.
+  const kiesRef = useRef(kies)
+  useEffect(() => {
+    kiesRef.current = kies
+  })
+  useEffect(() => {
+    const al = ref.current?.files?.[0]
+    if (al) void kiesRef.current(al)
+  }, [])
 
   const toon = voorbeeld ?? (link ? { link, type: type ?? '' } : null)
   return (

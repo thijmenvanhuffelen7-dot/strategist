@@ -198,6 +198,7 @@ model CroCheck {
   url           String?
   bron          String   @default("url") // url | geplakt
   pagina_tekst  String // wat de AI leest: uit de pagina gehaalde of geplakte tekst
+  screenshots   Json     @default("[]") // [{ ref, type, label }], max 3; ref zoals bij swipe_items.media_url
   analyse       Json?
   aangemaakt_op DateTime @default(now())
   bijgewerkt_op DateTime @updatedAt

@@ -3,12 +3,12 @@ import { upload } from '@vercel/blob/client'
 import { controleerBestand } from '@/lib/media'
 
 /** Uploadt een bestand: naar Vercel Blob (privé) als dat is gekoppeld, anders naar de lokale map. Geeft de verwijzing terug. */
-export async function uploadBestand(bestand: File, blob: boolean, voortgang?: (procent: number) => void): Promise<{ ref: string; type: string }> {
+export async function uploadBestand(bestand: File, blob: boolean, voortgang?: (procent: number) => void, map: 'swipe' | 'cro' = 'swipe'): Promise<{ ref: string; type: string }> {
   const fout = controleerBestand(bestand.type, bestand.size)
   if (fout) throw new Error(fout)
   if (blob) {
-    const veiligeNaam = bestand.name.replace(/[^\w.\-]+/g, '-').slice(-80)
-    const res = await upload(`swipe/${veiligeNaam}`, bestand, {
+    const veiligeNaam = (bestand.name || 'screenshot.png').replace(/[^\w.\-]+/g, '-').slice(-80)
+    const res = await upload(`${map}/${veiligeNaam}`, bestand, {
       access: 'private',
       handleUploadUrl: '/api/upload',
       multipart: bestand.size > 10 * 1024 * 1024,

@@ -4,6 +4,7 @@ import { prisma } from '../db'
 import { angles } from './angles'
 import { brief } from './brief'
 import { cro } from './cro'
+import { croVisueel } from './cro-visueel'
 import { swipe } from './swipe'
 import { hooks } from './hooks'
 import { onderzoek } from './onderzoek'
@@ -18,6 +19,7 @@ export const PROMPTS = {
   brief: { titel: 'Creative brief', standaard: brief },
   review: { titel: 'Kritische review', standaard: review },
   cro: { titel: 'CRO-check', standaard: cro },
+  cro_visueel: { titel: 'CRO-check – screenshots bekijken', standaard: croVisueel },
   swipe: { titel: 'Swipe File – analyseer deze ad', standaard: swipe },
 } as const
 

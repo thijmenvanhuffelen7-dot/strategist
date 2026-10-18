@@ -183,9 +183,30 @@ export const CRO_CATEGORIEEN = [
 export const NIVEAUS = ['hoog', 'midden', 'laag'] as const
 export type Niveau = (typeof NIVEAUS)[number]
 
+export const SCREENSHOT_LABELS = ['desktop', 'mobiel', 'overig'] as const
+export interface CroScreenshot {
+  ref: string
+  type: string
+  label: string
+}
+export const MAX_CRO_SCREENSHOTS = 3
+
+/** Wat het beeldmodel op een screenshot zag. */
+export interface CroVisueel {
+  label: string
+  boven_de_vouw: string
+  cta: string
+  hierarchie: string
+  vertrouwen: string
+  leesbaarheid: string
+  problemen: { probleem: string; waar: string }[]
+}
+
 export interface CroPunt {
   id: string
   categorie: string
+  /** "tekst" of het label van een screenshot (bijv. "screenshot mobiel"). */
+  bron?: string
   probleem: string
   bewijs: string
   aanbeveling: string
@@ -201,6 +222,9 @@ export interface CroAnalyse {
   quick_wins: { titel: string; actie: string }[]
   punten: CroPunt[]
   testideeen: { hypothese: string; variant: string; metric: string }[]
+  visueel?: CroVisueel[]
+  /** Er waren screenshots, maar het beeldmodel kon ze niet bekijken. */
+  screenshots_mislukt?: boolean
 }
 
 /** Prioriteit: hoge impact en lage moeite eerst. */

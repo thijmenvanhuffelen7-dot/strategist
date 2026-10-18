@@ -2,7 +2,8 @@ import { connection } from 'next/server'
 import { vereisLogin } from './auth'
 import { prisma } from './db'
 import { tokensVandaag } from './data-builder'
-import type { AiVersie, CroAnalyse, ReviewResultaat } from './builder-types'
+import type { AiVersie, CroAnalyse, CroScreenshot, ReviewResultaat } from './builder-types'
+import { mediaLink } from './opslag'
 
 export async function getCroChecks() {
   await connection()
@@ -35,6 +36,7 @@ export async function getCroCheck(id: string) {
     tokensVandaag(),
   ])
   const versies: AiVersie[] = versieRows.map((v) => ({ id: v.id, aangemaakt_op: v.aangemaakt_op, model: v.model, tokens: (v.input_tokens ?? 0) + (v.output_tokens ?? 0) }))
+  const screenshots = await Promise.all(((r.screenshots as unknown as CroScreenshot[]) ?? []).map(async (s) => ({ ...s, link: await mediaLink(s.ref) })))
   return {
     check: {
       id: r.id,
@@ -42,6 +44,7 @@ export async function getCroCheck(id: string) {
       url: r.url,
       bron: r.bron,
       pagina_tekst: r.pagina_tekst,
+      screenshots,
       analyse: r.analyse as unknown as CroAnalyse | null,
       project: r.project ? { id: r.project.id, naam: r.project.naam, onderzoek: Boolean(r.project.research) } : null,
       aangemaakt_op: r.aangemaakt_op,

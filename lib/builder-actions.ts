@@ -167,7 +167,8 @@ export async function herstelVersie(aiOutputId: string) {
   await vereisLogin()
   const v = await prisma.aiOutput.findUniqueOrThrow({ where: { id: aiOutputId } })
   if (v.functie === 'cro' && v.ref_id) {
-    await prisma.croCheck.update({ where: { id: v.ref_id }, data: { analyse: json(croOutputNaarAnalyse(croSchema.parse(v.output))) } })
+    const visueel = (v.output as { visueel?: import('./builder-types').CroVisueel[] }).visueel
+    await prisma.croCheck.update({ where: { id: v.ref_id }, data: { analyse: json(croOutputNaarAnalyse(croSchema.parse(v.output), visueel)) } })
     return
   }
   if (v.functie === 'swipe' && v.ref_id) {

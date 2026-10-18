@@ -11,6 +11,7 @@ Laatst bijgewerkt: 18 oktober 2026
 | 2b | Online: Postgres-database, login met wachtwoord, Vercel | ✅ Af – koppeling met Vercel/Neon nog door gebruiker te testen |
 | 2c | Extra module: CRO-check (docs/spec-cro.md) | ✅ Af – echte Groq-aanroepen nog door gebruiker te testen |
 | 3 | Swipe File met AI-analyse | ✅ Af – echte Groq-aanroepen en Vercel Blob nog door gebruiker te testen |
+| 3b | CRO-check: screenshots (ontwerp beoordelen) | ✅ Af – beeldmodel nog door gebruiker te testen |
 | 4 | Testlog met CSV-import, grafieken en AI-analyse | Nog te doen (volgende) |
 | 5 | Dashboard, instellingen, export en deellinks | Nog te doen |
 | 6+ | Uitbreiding: modules 7–10 (docs/spec-uitbreiding.md) | Nog te doen, spec ontbreekt |
@@ -63,7 +64,16 @@ Laatst bijgewerkt: 18 oktober 2026
 - Koppelen aan briefs, in beide richtingen (bij de ad én blok "Referentie-ads" in de brief-editor).
 - Zoekvenster (`/`) vindt ook swipe-items. Dashboard toont het aantal swipe-items.
 
+## Fase 3b: screenshots in de CRO-check
+- Tot 3 screenshots per CRO-check (desktop/mobiel/overig): slepen, kiezen of plakken met Ctrl/Cmd+V; privé opgeslagen.
+- Twee stappen: beeldmodel beschrijft per screenshot wat het ziet (`lib/prompts/cro-visueel.ts`), daarna schrijft het gewone model het advies met tekst + observaties.
+- Elk verbeterpunt heeft een bron ("tekst" of "screenshot mobiel" …); klik op de bron om het screenshot te zien. Sectie "Wat de AI op de screenshots zag".
+- Mislukt het beeldmodel: advies op basis van tekst, met een blijvende melding bij het advies.
+- Verbeterd voor alle AI-functies: ontbrekende tekstvelden in AI-antwoorden worden leeg in plaats van de tekst "undefined"; lege lijstitems worden weggefilterd.
+- Uploads: een bestand dat werd gekozen vóórdat de pagina klaar was met laden, wordt nu alsnog overgenomen.
+
 ## Getest
+- Fase 3b: screenshots via bestand, plakken (Ctrl+V) en slepen; maximaal 3; automatische labels; beoordelen met 3 screenshots (beeldmodel) + advies; bron-knop toont screenshot; label wijzigen; verwijderen ruimt bestanden op; plakken in een tekstvak voegt niets toe; terugval als het beeldmodel weigert; schema-test voor ontbrekende velden; alle AI-tests van fase 2, CRO en Swipe File opnieuw.
 - Fase 3: volledige stroom met nagebootste Groq en lokale opslag: nieuwe ad met screenshot (verkeerd bestandstype geweigerd), analyse met project + screenshot naar visiemodel, tag-suggesties overnemen, review, koppelen aan brief (beide kanten), video-upload met doorspoelen (Range), filters/zoeken/sorteren/tabel, globaal zoeken, verwijderen ruimt bestand op; terugval als het visiemodel de screenshot weigert; productiemodus: media en uploads zonder login geweigerd (401), met login zichtbaar.
 - Fase 2c: ophalen + omzetten naar tekst op een testpagina; weigeren van interne adressen (localhost, 127.0.0.1, 10.x, 169.254.x, ::1, file://, ftp://); volledige CRO-stroom met nagebootste Groq (ophalen, mislukt ophalen → plakken, beoordelen, sorteren, filteren, afvinken/bewerken opgeslagen, review, opnieuw + versie terugzetten, geplakte tekst zonder project, verwijderen).
 - Fase 2b: alle tests opnieuw op een Postgres-database; login in productiemodus (doorsturen, fout wachtwoord, ondertekend koekje, vals koekje geweigerd, API zonder login = 401, uitloggen); build met én zonder database.

@@ -2,7 +2,8 @@
 import { prisma } from './db'
 import { vereisLogin } from './auth'
 import type { Prisma } from '@/app/generated/prisma/client'
-import type { CroAnalyse } from './builder-types'
+import { MAX_CRO_SCREENSHOTS, SCREENSHOT_LABELS, type CroAnalyse, type CroScreenshot } from './builder-types'
+import { verwijderMedia } from './opslag'
 import { haalPaginaOp, OphaalFout } from './cro/ophalen'
 
 const json = (v: unknown) => v as Prisma.InputJsonValue
@@ -54,5 +55,39 @@ export async function updateCroCheck(id: string, patch: { titel?: string; pagina
 
 export async function verwijderCroCheck(id: string) {
   await vereisLogin()
-  await prisma.croCheck.delete({ where: { id } })
+  const c = await prisma.croCheck.delete({ where: { id } })
+  for (const s of (c.screenshots as unknown as CroScreenshot[]) ?? []) await verwijderMedia(s.ref)
+}
+
+async function screenshotsVan(id: string) {
+  const c = await prisma.croCheck.findUniqueOrThrow({ where: { id }, select: { screenshots: true } })
+  return ((c.screenshots as unknown as CroScreenshot[]) ?? []).slice()
+}
+
+export async function voegCroScreenshotToe(id: string, ref: string, type: string, label: string) {
+  await vereisLogin()
+  const geldig = /^blob:cro\/[\w.\-() %]+$/.test(ref) || /^lokaal:[0-9a-f-]{36}\.[a-z0-9]{1,5}$/.test(ref)
+  if (!geldig || !type.startsWith('image/')) throw new Error('Alleen afbeeldingen zijn toegestaan.')
+  const lijst = await screenshotsVan(id)
+  if (lijst.length >= MAX_CRO_SCREENSHOTS) {
+    await verwijderMedia(ref)
+    throw new Error(`Maximaal ${MAX_CRO_SCREENSHOTS} screenshots per check.`)
+  }
+  lijst.push({ ref, type, label: (SCREENSHOT_LABELS as readonly string[]).includes(label) ? label : 'overig' })
+  await prisma.croCheck.update({ where: { id }, data: { screenshots: json(lijst) } })
+}
+
+export async function zetCroScreenshotLabel(id: string, ref: string, label: string) {
+  await vereisLogin()
+  if (!(SCREENSHOT_LABELS as readonly string[]).includes(label)) return
+  const lijst = (await screenshotsVan(id)).map((s) => (s.ref === ref ? { ...s, label } : s))
+  await prisma.croCheck.update({ where: { id }, data: { screenshots: json(lijst) } })
+}
+
+export async function verwijderCroScreenshot(id: string, ref: string) {
+  await vereisLogin()
+  const lijst = await screenshotsVan(id)
+  if (!lijst.some((s) => s.ref === ref)) return
+  await prisma.croCheck.update({ where: { id }, data: { screenshots: json(lijst.filter((s) => s.ref !== ref)) } })
+  await verwijderMedia(ref)
 }

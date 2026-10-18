@@ -17,11 +17,13 @@ import { useAiActie } from '../ai/useAiActie'
 import type { AiInfo } from '../ai/types'
 import { GeenKey } from '../builder/StapOnderzoek'
 import { VerwijderKnop } from '../builder/onderdelen'
+import { CroScreenshots, type ScreenshotWeergave } from './CroScreenshots'
+import { Eye } from 'lucide-react'
 
 const IMPACT_KLEUR: Record<Niveau, PillColor> = { hoog: 'green', midden: 'blue', laag: 'gray' }
 const MOEITE_KLEUR: Record<Niveau, PillColor> = { laag: 'green', midden: 'amber', hoog: 'red' }
 
-export function CroView({ detail, ai, projecten }: { detail: CroDetail; ai: AiInfo; projecten: { id: string; naam: string }[] }) {
+export function CroView({ detail, ai, projecten, blob }: { detail: CroDetail; ai: AiInfo; projecten: { id: string; naam: string }[]; blob: boolean }) {
   const { check } = detail
   const router = useRouter()
   const confirm = useConfirm()
@@ -122,6 +124,8 @@ export function CroView({ detail, ai, projecten }: { detail: CroDetail; ai: AiIn
         </div>
       )}
 
+      <CroScreenshots croId={check.id} screenshots={check.screenshots} blob={blob} />
+
       <details className="card mb-5 p-4">
         <summary className="cursor-pointer text-sm font-medium">
           Wat de AI leest <span className="font-normal text-zinc-500">({paginaTekst.length.toLocaleString('nl-NL')} tekens, aan te passen)</span>
@@ -155,6 +159,12 @@ export function CroView({ detail, ai, projecten }: { detail: CroDetail; ai: AiIn
             </div>
             <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">{analyse.samenvatting}</p>
           </section>
+
+          {analyse.screenshots_mislukt && (
+            <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+              {analyse.visueel?.length ? 'Niet alle screenshots' : 'De screenshots'} konden niet door de AI worden bekeken; dat deel van het advies is op basis van de tekst. Probeer het later opnieuw, of kies een ander beeldmodel (GROQ_VISIE_MODEL).
+            </p>
+          )}
 
           {analyse.quick_wins.length > 0 && (
             <section>
@@ -195,10 +205,47 @@ export function CroView({ detail, ai, projecten }: { detail: CroDetail; ai: AiIn
             </div>
             <ul className="space-y-3">
               {punten.map((p) => (
-                <PuntKaart key={p.id} punt={p} onWijzig={(patch) => wijzigPunt(p.id, patch)} onVerwijder={() => zetAnalyse((a) => ({ ...a, punten: a.punten.filter((x) => x.id !== p.id) }))} />
+                <PuntKaart key={p.id} punt={p} screenshots={check.screenshots} onWijzig={(patch) => wijzigPunt(p.id, patch)} onVerwijder={() => zetAnalyse((a) => ({ ...a, punten: a.punten.filter((x) => x.id !== p.id) }))} />
               ))}
             </ul>
           </section>
+
+          {analyse.visueel && analyse.visueel.length > 0 && (
+            <details className="card p-4">
+              <summary className="cursor-pointer text-sm font-medium">
+                <Eye className="mr-1 inline size-4 text-zinc-400" /> Wat de AI op de screenshots zag
+              </summary>
+              <div className="mt-3 grid gap-4 md:grid-cols-2">
+                {analyse.visueel.map((v, i) => (
+                  <div key={i} className="space-y-1.5 text-sm">
+                    <p className="font-medium">Screenshot {v.label}</p>
+                    {(
+                      [
+                        ['Boven de vouw', v.boven_de_vouw],
+                        ['Knop (CTA)', v.cta],
+                        ['Hiërarchie', v.hierarchie],
+                        ['Vertrouwen', v.vertrouwen],
+                        ['Leesbaarheid', v.leesbaarheid],
+                      ] as const
+                    ).map(([k, t]) => t && (
+                      <p key={k}>
+                        <span className="text-zinc-400">{k}:</span> {t}
+                      </p>
+                    ))}
+                    {v.problemen.length > 0 && (
+                      <ul className="list-disc pl-5 text-zinc-600 dark:text-zinc-400">
+                        {v.problemen.map((p, j) => (
+                          <li key={j}>
+                            {p.probleem} {p.waar && <span className="text-zinc-400">({p.waar})</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
 
           {analyse.testideeen.length > 0 && (
             <section>
@@ -230,8 +277,11 @@ export function CroView({ detail, ai, projecten }: { detail: CroDetail; ai: AiIn
   )
 }
 
-function PuntKaart({ punt: p, onWijzig, onVerwijder }: { punt: CroPunt; onWijzig: (patch: Partial<CroPunt>) => void; onVerwijder: () => void }) {
+function PuntKaart({ punt: p, screenshots, onWijzig, onVerwijder }: { punt: CroPunt; screenshots: ScreenshotWeergave[]; onWijzig: (patch: Partial<CroPunt>) => void; onVerwijder: () => void }) {
   const [gekopieerd, setGekopieerd] = useState(false)
+  const [toonScreenshot, setToonScreenshot] = useState(false)
+  // Bron "screenshot mobiel" → het screenshot met label "mobiel".
+  const bronScreenshot = p.bron && p.bron !== 'tekst' ? screenshots.find((s) => p.bron!.toLowerCase().includes(s.label)) : undefined
   return (
     <li className={`card p-4 transition-opacity ${p.gedaan ? 'opacity-60' : ''}`}>
       <div className="flex items-start gap-3">
@@ -241,7 +291,21 @@ function PuntKaart({ punt: p, onWijzig, onVerwijder }: { punt: CroPunt; onWijzig
             <Pill color="violet">{p.categorie}</Pill>
             <NiveauKeuze label="impact" waarde={p.impact} kleur={IMPACT_KLEUR[p.impact]} onChange={(impact) => onWijzig({ impact })} />
             <NiveauKeuze label="moeite" waarde={p.moeite} kleur={MOEITE_KLEUR[p.moeite]} onChange={(moeite) => onWijzig({ moeite })} />
+            {p.bron && p.bron !== 'tekst' && (
+              <button
+                type="button"
+                onClick={() => setToonScreenshot((t) => !t)}
+                disabled={!bronScreenshot?.link}
+                className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700 ring-1 ring-sky-200 ring-inset hover:bg-sky-100 disabled:cursor-default dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-900"
+              >
+                <Eye className="size-3" /> {p.bron}
+              </button>
+            )}
           </div>
+          {toonScreenshot && bronScreenshot?.link && (
+            // eslint-disable-next-line @next/next/no-img-element -- privé-media via ondertekende links
+            <img src={bronScreenshot.link} alt={`Screenshot ${bronScreenshot.label}`} className="max-h-96 rounded-md border border-zinc-200 object-contain object-top dark:border-zinc-800" />
+          )}
           <AutoTextarea className={`w-full border-0 bg-transparent p-0 font-medium focus:ring-0 focus:outline-none ${p.gedaan ? 'line-through' : ''}`} value={p.probleem} onChange={(e) => onWijzig({ probleem: e.target.value })} aria-label="Probleem" />
           {p.bewijs && <p className="border-l-2 border-zinc-200 pl-2.5 text-sm text-zinc-500 italic dark:border-zinc-700">{p.bewijs}</p>}
           <div>

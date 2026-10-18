@@ -10,11 +10,14 @@ Een landingspagina (eigen of van een concurrent) laten beoordelen op conversie, 
 - Of: tekst van de pagina plakken (als ophalen niet lukt, bijv. door blokkade of omdat de site de inhoud pas later laadt).
 - Optioneel een project: dan wordt het klantonderzoek (pijnpunten, bezwaren, klanttaal) meegestuurd en vergelijkt de AI de pagina daarmee.
 - De opgehaalde tekst ("Wat de AI leest") is zichtbaar en aan te passen.
+- Optioneel tot 3 screenshots (desktop, mobiel, overig): slepen, kiezen of plakken met Ctrl/Cmd+V. Privé opgeslagen zoals in de Swipe File.
 
 ## Uitvoer (AI, JSON + Zod)
+Met screenshots in twee stappen: eerst beschrijft een beeldmodel per screenshot wat het ziet (boven de vouw, CTA, hiërarchie, vertrouwen, leesbaarheid, visuele problemen; prompt `lib/prompts/cro-visueel.ts`), daarna schrijft het gewone model het advies op basis van tekst + observaties. Mislukt het beeldmodel, dan alleen op basis van tekst.
+
 - Score 1–10 en samenvatting.
 - Top 3 quick wins.
-- 8–15 verbeterpunten, elk met: categorie (boven de vouw, waardepropositie, social proof, bezwaren & risico-omkering, CTA & flow, prijs & aanbod, vertrouwen, aansluiting ads & klanttaal), probleem, bewijs (citaat van de pagina), aanbeveling, voorbeeldtekst, impact en moeite (hoog/midden/laag).
+- 8–15 verbeterpunten, elk met: bron (tekst of welk screenshot, met het screenshot erbij in de interface), categorie (boven de vouw, waardepropositie, social proof, bezwaren & risico-omkering, CTA & flow, prijs & aanbod, vertrouwen, aansluiting ads & klanttaal), probleem, bewijs (citaat van de pagina), aanbeveling, voorbeeldtekst, impact en moeite (hoog/midden/laag).
 - 3–5 A/B-testideeën met hypothese, variant en metric.
 
 ## Weergave en bewerken
@@ -23,10 +26,9 @@ Een landingspagina (eigen of van een concurrent) laten beoordelen op conversie, 
 - Overzicht van eerdere checks. Link "Check deze pagina" vanuit het projectoverzicht.
 
 ## Beperkingen
-- Alleen tekst en structuur; geen ontwerp, afbeeldingen of laadsnelheid.
+- Zonder screenshots alleen tekst en structuur. Laadsnelheid wordt nooit beoordeeld. De app maakt zelf geen screenshots van een URL.
 - Lange pagina's worden ingekort tot wat binnen het tokenlimiet past.
 - Ophalen: alleen http(s), geen interne adressen, tijdslimiet 12 s, maximaal 3 MB.
 
 ## Later
 - A/B-testideeën omzetten naar de Testlog (fase 4).
-- Beoordeling op basis van een screenshot (vision-model).

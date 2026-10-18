@@ -1,7 +1,7 @@
 // Geeft de browser toestemming om direct naar Vercel Blob te uploaden (privé). Alleen voor ingelogde gebruikers.
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 import { isIngelogd } from '@/lib/auth'
-import { MAX_VIDEO, MEDIA_TYPES } from '@/lib/media'
+import { MAX_AFBEELDING, MAX_VIDEO, MEDIA_TYPES } from '@/lib/media'
 
 export async function POST(request: Request) {
   if (!(await isIngelogd())) return Response.json({ error: 'Niet ingelogd' }, { status: 401 })
@@ -12,8 +12,10 @@ export async function POST(request: Request) {
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
-        if (!pathname.startsWith('swipe/')) throw new Error('Ongeldig pad')
-        return { allowedContentTypes: [...MEDIA_TYPES], maximumSizeInBytes: MAX_VIDEO, addRandomSuffix: true }
+        // swipe/: screenshots en video's · cro/: alleen screenshots
+        if (pathname.startsWith('swipe/')) return { allowedContentTypes: [...MEDIA_TYPES], maximumSizeInBytes: MAX_VIDEO, addRandomSuffix: true }
+        if (pathname.startsWith('cro/')) return { allowedContentTypes: MEDIA_TYPES.filter((t) => t.startsWith('image/')), maximumSizeInBytes: MAX_AFBEELDING, addRandomSuffix: true }
+        throw new Error('Ongeldig pad')
       },
     })
     return Response.json(res)

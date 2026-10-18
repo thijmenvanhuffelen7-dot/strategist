@@ -3,8 +3,15 @@
 import { z } from 'zod'
 import { ANGLE_TYPES, BEWUSTZIJNSNIVEAUS, BRANCHES, CRO_CATEGORIEEN, EMOTIES, FORMAT_TYPES, FREQUENTIES, HOOK_TYPES, NIVEAUS } from '../builder-types'
 
-const tekst = z.coerce.string().catch('')
-const tekstLijst = z.array(z.coerce.string()).catch([])
+// Tekst uit het AI-antwoord. Let op: z.coerce.string() maakt van een ontbrekend veld de tekst "undefined";
+// daarom eerst null/undefined → '' en lege items uit lijsten filteren.
+const naarTekst = (v: unknown) => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v))
+const str = z.preprocess(naarTekst, z.string())
+const tekst = str.catch('')
+const tekstLijst = z
+  .array(z.unknown())
+  .transform((a) => a.map(naarTekst).map((t) => t.trim()).filter(Boolean))
+  .catch([])
 
 function kiesUit<T extends readonly string[]>(opties: T, standaard: T[number]) {
   return z.preprocess(
@@ -136,11 +143,12 @@ export const reviewVoorbeeld = {
 export const croSchema = z.object({
   score: z.coerce.number().catch(5).transform((n) => Math.min(10, Math.max(1, Math.round(n)))),
   samenvatting: tekst,
-  quick_wins: z.array(z.object({ titel: z.coerce.string(), actie: tekst })).catch([]),
+  quick_wins: z.array(z.object({ titel: tekst, actie: tekst })).catch([]),
   punten: z
     .array(
       z.object({
         categorie: kiesUit(CRO_CATEGORIEEN, 'waardepropositie'),
+        bron: z.preprocess((v) => (typeof v === 'string' && v.trim() ? v.trim() : 'tekst'), z.string()).catch('tekst'),
         probleem: z.string().min(1),
         bewijs: tekst,
         aanbeveling: tekst,
@@ -150,7 +158,7 @@ export const croSchema = z.object({
       }),
     )
     .min(3),
-  testideeen: z.array(z.object({ hypothese: z.coerce.string(), variant: tekst, metric: tekst })).catch([]),
+  testideeen: z.array(z.object({ hypothese: tekst, variant: tekst, metric: tekst })).catch([]),
 })
 export type CroOutput = z.infer<typeof croSchema>
 
@@ -161,6 +169,7 @@ export const croVoorbeeld = {
   punten: [
     {
       categorie: CRO_CATEGORIEEN.join(' | '),
+      bron: 'tekst | screenshot <label>',
       probleem: '…',
       bewijs: 'letterlijk citaat van de pagina, of wat er ontbreekt',
       aanbeveling: '…',
@@ -174,13 +183,13 @@ export const croVoorbeeld = {
 
 export const swipeSchema = z.object({
   hook: z.object({ gesproken: tekst, visueel: tekst, type: kiesUit(HOOK_TYPES, 'directe aanspreking') }),
-  angle: z.object({ naam: z.coerce.string(), type: kiesUit(ANGLE_TYPES, 'pijnpunt'), kernboodschap: tekst }),
+  angle: z.object({ naam: tekst, type: kiesUit(ANGLE_TYPES, 'pijnpunt'), kernboodschap: tekst }),
   structuur: z.array(z.object({ tijd: tekst, fase: tekst, wat: tekst })).catch([]),
   emotie: tekst,
   pijnpunt: tekst,
   bewustzijnsniveau: kiesUit(BEWUSTZIJNSNIVEAUS, 'problem aware'),
-  redenen: z.array(z.coerce.string()).min(1),
-  toepassingen: z.array(z.object({ idee: z.coerce.string(), hoe: tekst })).catch([]),
+  redenen: tekstLijst.pipe(z.array(z.string()).min(1)),
+  toepassingen: z.array(z.object({ idee: tekst, hoe: tekst })).catch([]),
   tags: z
     .object({
       branche: kiesUit(BRANCHES, 'overig'),
@@ -203,4 +212,22 @@ export const swipeVoorbeeld = {
   redenen: ['…', '…', '…'],
   toepassingen: [{ idee: '…', hoe: 'concreet voor het gekozen project' }],
   tags: { branche: BRANCHES.join(' | '), format: FORMAT_TYPES.join(' | '), hook_type: HOOK_TYPES.join(' | '), angle_type: ANGLE_TYPES.join(' | '), emotie: EMOTIES.join(' | ') },
+}
+
+export const croVisueelSchema = z.object({
+  boven_de_vouw: tekst,
+  cta: tekst,
+  hierarchie: tekst,
+  vertrouwen: tekst,
+  leesbaarheid: tekst,
+  problemen: z.array(z.object({ probleem: tekst, waar: tekst })).catch([]),
+})
+
+export const croVisueelVoorbeeld = {
+  boven_de_vouw: '…',
+  cta: '…',
+  hierarchie: '…',
+  vertrouwen: '…',
+  leesbaarheid: '…',
+  problemen: [{ probleem: '…', waar: 'bijv. rechtsboven, onder de kop' }],
 }

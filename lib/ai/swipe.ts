@@ -4,7 +4,6 @@ import { toProject } from '../data'
 import { toResearch, tokensVandaag } from '../data-builder'
 import type { SwipeAnalyse } from '../builder-types'
 import { getSysteemprompt } from '../prompts'
-import { mediaLink } from '../opslag'
 import type { Prisma } from '@/app/generated/prisma/client'
 import { projectContext, researchContext } from './context'
 import type { Emit } from './events'
@@ -12,21 +11,9 @@ import { AiFout, RateLimitError } from './provider'
 import { vraagJson } from './run'
 import { swipeSchema, swipeVoorbeeld, type SwipeOutput } from './schemas'
 import { kapAf } from './tokens'
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
+import { afbeeldingVoorAi } from './afbeelding'
 
 const json = (v: unknown) => v as Prisma.InputJsonValue
-
-/** Afbeelding als link die de AI-provider kan ophalen: ondertekende Blob-link, of data-URL voor lokale bestanden. */
-async function afbeeldingVoorAi(ref: string, type: string): Promise<string | null> {
-  if (ref.startsWith('lokaal:')) {
-    const data = await readFile(path.join(process.cwd(), 'uploads', path.basename(ref.slice(7)))).catch(() => null)
-    if (!data || data.byteLength > 4 * 1024 * 1024) return null // limiet voor afbeeldingen als data-URL
-    return `data:${type};base64,${data.toString('base64')}`
-  }
-  const link = await mediaLink(ref)
-  return link?.startsWith('https://') ? link : null
-}
 
 export function swipeOutputNaarAnalyse(o: SwipeOutput, project: { id: string; naam: string } | null, metScreenshot: boolean): SwipeAnalyse {
   return { ...o, toepassingen: project ? o.toepassingen : [], project, met_screenshot: metScreenshot }
