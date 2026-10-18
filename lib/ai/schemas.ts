@@ -1,7 +1,7 @@
 // Zod-schema's voor de AI-uitvoer, plus een voorbeeld dat in de prompt meegaat zodat het model de vorm kent.
 // Schema's zijn bewust vergevingsgezind bij kleine afwijkingen (bijv. score als tekst), maar streng op de kern.
 import { z } from 'zod'
-import { ANGLE_TYPES, BEWUSTZIJNSNIVEAUS, FREQUENTIES, HOOK_TYPES } from '../builder-types'
+import { ANGLE_TYPES, BEWUSTZIJNSNIVEAUS, CRO_CATEGORIEEN, FREQUENTIES, HOOK_TYPES, NIVEAUS } from '../builder-types'
 
 const tekst = z.coerce.string().catch('')
 const tekstLijst = z.array(z.coerce.string()).catch([])
@@ -131,4 +131,43 @@ export const reviewVoorbeeld = {
   ontbrekende_info: ['…'],
   oordeel: '2–3 zinnen',
   score: 6,
+}
+
+export const croSchema = z.object({
+  score: z.coerce.number().catch(5).transform((n) => Math.min(10, Math.max(1, Math.round(n)))),
+  samenvatting: tekst,
+  quick_wins: z.array(z.object({ titel: z.coerce.string(), actie: tekst })).catch([]),
+  punten: z
+    .array(
+      z.object({
+        categorie: kiesUit(CRO_CATEGORIEEN, 'waardepropositie'),
+        probleem: z.string().min(1),
+        bewijs: tekst,
+        aanbeveling: tekst,
+        voorbeeldtekst: tekst,
+        impact: kiesUit(NIVEAUS, 'midden'),
+        moeite: kiesUit(NIVEAUS, 'midden'),
+      }),
+    )
+    .min(3),
+  testideeen: z.array(z.object({ hypothese: z.coerce.string(), variant: tekst, metric: tekst })).catch([]),
+})
+export type CroOutput = z.infer<typeof croSchema>
+
+export const croVoorbeeld = {
+  score: 6,
+  samenvatting: '2–3 zinnen',
+  quick_wins: [{ titel: '…', actie: '…' }],
+  punten: [
+    {
+      categorie: CRO_CATEGORIEEN.join(' | '),
+      probleem: '…',
+      bewijs: 'letterlijk citaat van de pagina, of wat er ontbreekt',
+      aanbeveling: '…',
+      voorbeeldtekst: 'kant-en-klare tekst',
+      impact: 'hoog | midden | laag',
+      moeite: 'hoog | midden | laag',
+    },
+  ],
+  testideeen: [{ hypothese: 'Als we … dan … omdat …', variant: '…', metric: 'conversieratio' }],
 }

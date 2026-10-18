@@ -7,7 +7,8 @@ import { vereisLogin } from './auth'
 import type { Prisma } from '@/app/generated/prisma/client'
 import { BRIEF_STATUSSEN, legeBriefInhoud, type BriefInhoud, type ResearchData } from './builder-types'
 import { briefOutputNaarInhoud, slaAnglesOp, slaOnderzoekOp } from './ai/acties'
-import { anglesSchema, briefSchema, onderzoekSchema } from './ai/schemas'
+import { anglesSchema, briefSchema, croSchema, onderzoekSchema } from './ai/schemas'
+import { croOutputNaarAnalyse } from './ai/cro'
 
 const json = (v: unknown) => v as Prisma.InputJsonValue
 const MAX_GESELECTEERD = 5
@@ -160,10 +161,14 @@ export async function verwijderBrief(id: string) {
 
 // --- Versies -----------------------------------------------------------------
 
-/** Zet een eerdere AI-uitvoer terug (onderzoek, angles of brief). */
+/** Zet een eerdere AI-uitvoer terug (onderzoek, angles, brief of CRO-check). */
 export async function herstelVersie(aiOutputId: string) {
   await vereisLogin()
   const v = await prisma.aiOutput.findUniqueOrThrow({ where: { id: aiOutputId } })
+  if (v.functie === 'cro' && v.ref_id) {
+    await prisma.croCheck.update({ where: { id: v.ref_id }, data: { analyse: json(croOutputNaarAnalyse(croSchema.parse(v.output))) } })
+    return
+  }
   if (!v.project_id) throw new Error('Deze versie hoort bij geen project.')
   if (v.functie === 'onderzoek') await slaOnderzoekOp(v.project_id, onderzoekSchema.parse(v.output))
   else if (v.functie === 'angles') await slaAnglesOp(v.project_id, anglesSchema.parse(v.output).angles)

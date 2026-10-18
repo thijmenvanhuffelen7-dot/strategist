@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, FolderKanban, FileText, Bookmark, FlaskConical, Settings, Search, Menu, X, Sun, Moon, Monitor, LogOut } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, FileText, Bookmark, FlaskConical, Settings, Search, Menu, X, Sun, Moon, Monitor, LogOut, ScanSearch } from 'lucide-react'
 import { logout } from '@/lib/auth-actions'
 import { setTheme, useSystemThemeSync, useTheme, type ThemeChoice } from '@/lib/theme'
 import { isTypingTarget, triggerNew } from '@/lib/shortcuts'
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/projecten', label: 'Projecten', icon: FolderKanban },
   { href: '/briefs', label: 'Brief Builder', icon: FileText },
+  { href: '/cro', label: 'CRO-check', icon: ScanSearch },
   { href: '/swipe', label: 'Swipe File', icon: Bookmark },
   { href: '/testlog', label: 'Testlog', icon: FlaskConical },
   { href: '/instellingen', label: 'Instellingen', icon: Settings },

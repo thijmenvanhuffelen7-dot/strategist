@@ -30,7 +30,7 @@ import { schatTokens, splitsKlantdata } from './tokens'
 type Verbruik = { input: number; output: number }
 const json = (v: unknown) => v as Prisma.InputJsonValue
 
-async function bewaarOutput(functie: string, projectId: string, refId: string | null, output: unknown, verbruik: Verbruik, model: string, emit: Emit) {
+async function bewaarOutput(functie: string, projectId: string | null, refId: string | null, output: unknown, verbruik: Verbruik, model: string, emit: Emit) {
   await prisma.aiOutput.create({
     data: { functie, project_id: projectId, ref_id: refId, output: json(output), model, input_tokens: verbruik.input, output_tokens: verbruik.output },
   })
@@ -235,7 +235,9 @@ export async function genereerBrief(
 // Kritische review
 // ---------------------------------------------------------------------------
 
-export async function kritischeReview(params: { projectId: string; stap: ReviewStap; briefId?: string }, emit: Emit, signal?: AbortSignal) {
+export async function kritischeReview(params: { projectId?: string; stap: ReviewStap; briefId?: string; croId?: string }, emit: Emit, signal?: AbortSignal) {
+  if (params.stap === 'cro') return croReview(params.croId, emit, signal)
+  if (!params.projectId) throw new AiFout('Project ontbreekt.', false)
   const { project, research } = await laadProject(params.projectId)
   let werk: string
   if (params.stap === 'onderzoek') {
@@ -267,4 +269,21 @@ export async function kritischeReview(params: { projectId: string; stap: ReviewS
   })
   const refId = params.stap === 'brief' ? params.briefId! : params.stap
   await bewaarOutput('review', params.projectId, refId, res.data, res.verbruik, res.model, emit)
+}
+
+/** Review van een CRO-check: beoordeelt het CRO-advies zelf. */
+async function croReview(croId: string | undefined, emit: Emit, signal?: AbortSignal) {
+  const check = croId ? await prisma.croCheck.findUnique({ where: { id: croId }, include: { project: true } }) : null
+  if (!check?.analyse) throw new AiFout('Er is nog geen CRO-advies om te beoordelen.', false)
+  emit({ type: 'status', bericht: 'Creative director leest mee…' })
+  const res = await vraagJson({
+    systeem: await getSysteemprompt('review'),
+    gebruiker: `${check.project ? projectContext(toProject(check.project)) : ''}\n\n# Te beoordelen: CRO-advies voor ${check.url ?? check.titel}\n${JSON.stringify(check.analyse)}\n\n# Paginatekst (begin)\n${check.pagina_tekst.slice(0, 2500)}`,
+    schema: reviewSchema,
+    voorbeeld: reviewVoorbeeld,
+    maxTokens: 1800,
+    emit,
+    signal,
+  })
+  await bewaarOutput('review', check.project_id, check.id, res.data, res.verbruik, res.model, emit)
 }

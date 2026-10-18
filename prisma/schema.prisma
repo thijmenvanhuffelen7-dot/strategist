@@ -33,12 +33,12 @@ model Project {
   url                  String?
   landingspagina_tekst String?
   doelgroep            String?
-  platforms            Json @default("[]") // string[]
+  platforms            Json     @default("[]") // string[]
   doel                 String?
   taal                 String   @default("Nederlands")
-  concurrenten         Json @default("[]") // { naam, url }[]
+  concurrenten         Json     @default("[]") // { naam, url }[]
   klantdata            String?
-  drempels             Json @default("{}")
+  drempels             Json     @default("{}")
   is_voorbeeld         Boolean  @default(false)
   aangemaakt_op        DateTime @default(now())
   bijgewerkt_op        DateTime @updatedAt
@@ -49,6 +49,7 @@ model Project {
   briefs     Brief[]
   tests      Test[]
   ai_outputs AiOutput[]
+  cro_checks CroCheck[]
 
   @@map("projects")
 }
@@ -56,11 +57,11 @@ model Project {
 model Research {
   id                String   @id @default(uuid())
   project_id        String   @unique
-  pijnpunten        Json @default("[]")
-  verlangens        Json @default("[]")
-  bezwaren          Json @default("[]")
-  aha_momenten      Json @default("[]")
-  klanttaal         Json @default("[]")
+  pijnpunten        Json     @default("[]")
+  verlangens        Json     @default("[]")
+  bezwaren          Json     @default("[]")
+  aha_momenten      Json     @default("[]")
+  klanttaal         Json     @default("[]")
   bewustzijnsniveau Json?
   goedgekeurd       Boolean  @default(false)
   bijgewerkt_op     DateTime @updatedAt
@@ -118,7 +119,7 @@ model Brief {
   angle_id      String?
   hook_id       String?
   titel         String   @default("Naamloze brief")
-  inhoud        Json @default("{}")
+  inhoud        Json     @default("{}")
   status        String   @default("concept") // concept | klaar | in_productie | live | gearchiveerd
   share_token   String?  @unique
   aangemaakt_op DateTime @default(now())
@@ -142,7 +143,7 @@ model SwipeItem {
   url           String?
   media_url     String? // pad binnen /uploads
   transcript    String?
-  tags          Json @default("{}")
+  tags          Json     @default("{}")
   analyse       Json?
   notities      String?
   beoordeling   Int?
@@ -175,7 +176,7 @@ model Test {
   platform      String?
   live_datum    DateTime?
   status        String    @default("testen") // testen | winnaar | verliezer | gestopt
-  metrics       Json @default("{}")
+  metrics       Json      @default("{}")
   hypothese     String?
   les           String?
   aangemaakt_op DateTime  @default(now())
@@ -186,6 +187,24 @@ model Test {
 
   @@index([project_id])
   @@map("tests")
+}
+
+// CRO-check van een landingspagina (extra module, zie docs/spec-cro.md).
+model CroCheck {
+  id            String   @id @default(uuid())
+  project_id    String? // optioneel: dan wordt het klantonderzoek van dit project meegenomen
+  titel         String
+  url           String?
+  bron          String   @default("url") // url | geplakt
+  pagina_tekst  String // wat de AI leest: uit de pagina gehaalde of geplakte tekst
+  analyse       Json?
+  aangemaakt_op DateTime @default(now())
+  bijgewerkt_op DateTime @updatedAt
+
+  project Project? @relation(fields: [project_id], references: [id], onDelete: SetNull)
+
+  @@index([project_id])
+  @@map("cro_checks")
 }
 
 // Aangepaste systeemprompts; zonder rij geldt het bestand in /lib/prompts als standaard.

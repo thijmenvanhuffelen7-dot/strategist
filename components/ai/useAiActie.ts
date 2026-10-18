@@ -9,7 +9,8 @@ export type AiVerzoek =
   | { actie: 'angles'; projectId: string }
   | { actie: 'hooks'; projectId: string; angleId: string }
   | { actie: 'brief'; projectId: string; angleId: string; hookId: string; briefId?: string }
-  | { actie: 'review'; projectId: string; stap: 'onderzoek' | 'angles' | 'hooks' | 'brief'; briefId?: string }
+  | { actie: 'review'; projectId?: string; stap: 'onderzoek' | 'angles' | 'hooks' | 'brief' | 'cro'; briefId?: string; croId?: string }
+  | { actie: 'cro'; croId: string }
 
 export interface AiStaat {
   bezig: boolean

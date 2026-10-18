@@ -6,6 +6,7 @@ Ik ben geen ervaren programmeur. Leg dingen kort en in gewone taal uit.
 ## Specificaties
 - docs/spec-basis.md: basis-app (modules 1–6)
 - docs/spec-uitbreiding.md: uitbreiding (modules 7–10)
+- docs/spec-cro.md: extra module CRO-check (landingspagina beoordelen)
 - docs/voortgang.md: wat af is, wat nog moet, bekende problemen. Werk dit bij na elke fase.
 
 Lees de relevante spec voordat je aan een module begint. Wijk er niet van af zonder het te vragen.

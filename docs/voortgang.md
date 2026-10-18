@@ -9,7 +9,8 @@ Laatst bijgewerkt: 18 oktober 2026
 | 1 | Projecten, basislayout en navigatie (Next.js + SQLite) | ✅ Af |
 | 2 | Brief Builder stap 1–4 met AI (Groq) | ✅ Af – echte Groq-aanroepen nog door gebruiker te testen |
 | 2b | Online: Postgres-database, login met wachtwoord, Vercel | ✅ Af – koppeling met Vercel/Neon nog door gebruiker te testen |
-| 3 | Swipe File met AI-analyse | Nog te doen |
+| 2c | Extra module: CRO-check (docs/spec-cro.md) | ✅ Af – echte Groq-aanroepen nog door gebruiker te testen |
+| 3 | Swipe File met AI-analyse | Nog te doen (volgende) |
 | 4 | Testlog met CSV-import, grafieken en AI-analyse | Nog te doen |
 | 5 | Dashboard, instellingen, export en deellinks | Nog te doen |
 | 6+ | Uitbreiding: modules 7–10 (docs/spec-uitbreiding.md) | Nog te doen, spec ontbreekt |
@@ -47,7 +48,15 @@ Laatst bijgewerkt: 18 oktober 2026
 - Datums in vaste tijdzone (Europe/Amsterdam), omdat Vercel in UTC draait.
 - AI-route mag op Vercel maximaal 5 minuten duren.
 
+## Fase 2c: CRO-check
+- Nieuwe module in de zijbalk (`/cro`), tabel `cro_checks`, prompt `lib/prompts/cro.ts`, AI-actie `lib/ai/cro.ts`.
+- Pagina ophalen via webadres (`lib/cro/ophalen.ts`, met `node-html-parser`) of tekst plakken; optioneel project koppelen (klantonderzoek wordt meegenomen).
+- Score, samenvatting, quick wins, verbeterpunten (categorie, bewijs, aanbeveling, voorbeeldtekst, impact/moeite), A/B-testideeën.
+- Punten afvinken, bewerken, filteren, verwijderen; opnieuw beoordelen; versies; kritische review.
+- Veilig ophalen: alleen http(s), interne adressen geweigerd (ook via doorverwijzing), tijdslimiet en maximale grootte.
+
 ## Getest
+- Fase 2c: ophalen + omzetten naar tekst op een testpagina; weigeren van interne adressen (localhost, 127.0.0.1, 10.x, 169.254.x, ::1, file://, ftp://); volledige CRO-stroom met nagebootste Groq (ophalen, mislukt ophalen → plakken, beoordelen, sorteren, filteren, afvinken/bewerken opgeslagen, review, opnieuw + versie terugzetten, geplakte tekst zonder project, verwijderen).
 - Fase 2b: alle tests opnieuw op een Postgres-database; login in productiemodus (doorsturen, fout wachtwoord, ondertekend koekje, vals koekje geweigerd, API zonder login = 401, uitloggen); build met én zonder database.
 - Alle niet-AI-stappen in de browser (handmatig onderzoek, angles, hooks, lege brief, bewerken, dupliceren, tabbladen, modelkeuze).
 - De volledige AI-keten tegen een **nagebootste** Groq-server: streaming, 429 met wachttijd, ongeldig antwoord → herkansing, ```json-blokken, weigering van streaming → terugval, opsplitsen van ~10.000 tokens klantdata in 3 delen + samenvoegen, versies, reviews.
@@ -56,10 +65,12 @@ Laatst bijgewerkt: 18 oktober 2026
 ## Nog te doen (buiten de fases om)
 - `docs/spec-uitbreiding.md` (modules 7–10) ontbreekt nog in de repository.
 - Fase 4: veld `parent_test_id` toevoegen aan tests (iteratieboom module 10); "Maak testlog-item aan" vanuit de brief.
+- CRO-check: A/B-testideeën naar de Testlog (fase 4); beoordeling op basis van een screenshot (later).
 - Fase 3: uploads via Vercel Blob (`@vercel/blob`); de Blob-opslag kan nu al in Vercel worden aangemaakt.
 - Fase 5: PDF/Markdown-export en deellink van briefs (deellink moet buiten de login om bereikbaar zijn); prompts bewerken via Instellingen.
 
 ## Bekende problemen / aandachtspunten
+- CRO-check: sites die hun tekst pas met JavaScript laden of bots blokkeren, kunnen niet worden opgehaald; dan tekst plakken. Op Vercel komen verzoeken van een datacenter-IP, wat sommige sites eerder blokkeren.
 - Modellijst in Instellingen is niet gecontroleerd tegen de actuele Groq-documentatie; een ander model-ID kan altijd handmatig.
 - Het gratis limiet (±8.000 tokens/minuut) betekent dat snel achter elkaar genereren soms 20–60 seconden wachten geeft; de app toont dan een aftelling.
 - De limietplanner houdt alleen verzoeken bij binnen één serverproces. Op Vercel kunnen meerdere processen tegelijk draaien; dan vangt de 429-afhandeling (wachten en opnieuw proberen) het op.

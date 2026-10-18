@@ -141,7 +141,7 @@ export interface ReviewResultaat {
   score: number
 }
 
-export const REVIEW_STAPPEN = ['onderzoek', 'angles', 'hooks', 'brief'] as const
+export const REVIEW_STAPPEN = ['onderzoek', 'angles', 'hooks', 'brief', 'cro'] as const
 export type ReviewStap = (typeof REVIEW_STAPPEN)[number]
 
 export interface AiVersie {
@@ -166,4 +166,45 @@ export function legeBriefInhoud(): BriefInhoud {
     richtlijnen: { toon: '', setting: '', muziek: '', ondertitels: '', dos: [], donts: [] },
     succescriteria: [],
   }
+}
+
+// --- CRO-check -----------------------------------------------------------------
+
+export const CRO_CATEGORIEEN = [
+  'boven de vouw',
+  'waardepropositie',
+  'social proof',
+  'bezwaren & risico-omkering',
+  'CTA & flow',
+  'prijs & aanbod',
+  'vertrouwen',
+  'aansluiting ads & klanttaal',
+] as const
+export const NIVEAUS = ['hoog', 'midden', 'laag'] as const
+export type Niveau = (typeof NIVEAUS)[number]
+
+export interface CroPunt {
+  id: string
+  categorie: string
+  probleem: string
+  bewijs: string
+  aanbeveling: string
+  voorbeeldtekst: string
+  impact: Niveau
+  moeite: Niveau
+  gedaan: boolean
+}
+
+export interface CroAnalyse {
+  score: number
+  samenvatting: string
+  quick_wins: { titel: string; actie: string }[]
+  punten: CroPunt[]
+  testideeen: { hypothese: string; variant: string; metric: string }[]
+}
+
+/** Prioriteit: hoge impact en lage moeite eerst. */
+export function croPrioriteit(p: Pick<CroPunt, 'impact' | 'moeite'>) {
+  const w = { hoog: 3, midden: 2, laag: 1 }
+  return w[p.impact] * 2 - w[p.moeite]
 }

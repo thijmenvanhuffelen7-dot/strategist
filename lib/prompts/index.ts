@@ -3,6 +3,7 @@
 import { prisma } from '../db'
 import { angles } from './angles'
 import { brief } from './brief'
+import { cro } from './cro'
 import { hooks } from './hooks'
 import { onderzoek } from './onderzoek'
 import { onderzoekSamenvoegen } from './onderzoek-samenvoegen'
@@ -15,6 +16,7 @@ export const PROMPTS = {
   hooks: { titel: 'Hooks', standaard: hooks },
   brief: { titel: 'Creative brief', standaard: brief },
   review: { titel: 'Kritische review', standaard: review },
+  cro: { titel: 'CRO-check', standaard: cro },
 } as const
 
 export type PromptFunctie = keyof typeof PROMPTS

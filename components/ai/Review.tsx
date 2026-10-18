@@ -13,13 +13,15 @@ export function Review({
   projectId,
   stap,
   briefId,
+  croId,
   laatste,
   ai,
   uitgeschakeld,
 }: {
-  projectId: string
+  projectId?: string
   stap: ReviewStap
   briefId?: string
+  croId?: string
   laatste: { review: ReviewResultaat; aangemaakt_op: Date } | null
   ai: AiInfo
   uitgeschakeld?: string
@@ -46,7 +48,7 @@ export function Review({
             title={!ai.ingesteld ? ai.ontbrekendeKeyMelding : uitgeschakeld}
             onClick={() => {
               setOpen(true)
-              start({ actie: 'review', projectId, stap, briefId })
+              start({ actie: 'review', projectId, stap, briefId, croId })
             }}
           >
             {laatste ? 'Nieuwe review' : 'Vraag review'}

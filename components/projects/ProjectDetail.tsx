@@ -159,6 +159,13 @@ function Overzicht({ project: p }: { project: Project }) {
               '—'
             )}
           </Row>
+          {p.url && (
+            <Row label="CRO">
+              <Link href={`/cro?project=${p.id}&url=${encodeURIComponent(p.url)}`} className="text-accent-600 hover:underline">
+                Check deze pagina →
+              </Link>
+            </Row>
+          )}
           <Row label="Doel">{doelLabel(p.doel)}</Row>
           <Row label="Taal ads">{p.taal}</Row>
           <Row label="Platforms">{p.platforms.join(', ') || '—'}</Row>
