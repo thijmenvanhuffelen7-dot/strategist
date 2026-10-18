@@ -6,6 +6,7 @@ import { Button, Pill } from '../ui'
 import { AiStatus } from './AiStatus'
 import { useAiActie } from './useAiActie'
 import type { AiInfo } from './types'
+import { datumTijd } from '@/lib/datum'
 
 /** Knop "Kritische review" plus de laatste review van deze stap. */
 export function Review({
@@ -83,7 +84,7 @@ export function Review({
               </ul>
             </div>
           )}
-          <p className="text-xs text-zinc-400">{laatste.aangemaakt_op.toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+          <p className="text-xs text-zinc-400">{datumTijd(laatste.aangemaakt_op)}</p>
         </div>
       )}
     </section>

@@ -6,8 +6,9 @@ import { herstelVersie } from '@/lib/builder-actions'
 import type { AiVersie } from '@/lib/builder-types'
 import { Button } from '../ui'
 import { useConfirm } from '../ConfirmDialog'
+import { datumTijd } from '@/lib/datum'
 
-const fmt = (d: Date) => d.toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+const fmt = datumTijd
 
 /** Lijst met eerdere AI-versies, met de mogelijkheid er één terug te zetten. */
 export function Versies({ versies, uitleg }: { versies: AiVersie[]; uitleg: string }) {

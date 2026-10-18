@@ -10,6 +10,7 @@ import { AiStatus } from '../ai/AiStatus'
 import { useAiActie } from '../ai/useAiActie'
 import type { AiInfo } from '../ai/types'
 import { GeenKey } from './StapOnderzoek'
+import { kortDatum } from '@/lib/datum'
 
 export function StapBrief({
   projectId,
@@ -137,7 +138,7 @@ export function BriefLijst({ briefs, projectNamen }: { briefs: BriefData[]; proj
           <span className="min-w-0 flex-1 truncate text-sm font-medium">{b.titel}</span>
           {projectNamen && <span className="text-xs text-zinc-500">{projectNamen[b.project_id]}</span>}
           <StatusPill status={b.status} />
-          <span className="text-xs text-zinc-500">{b.bijgewerkt_op.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
+          <span className="text-xs text-zinc-500">{kortDatum(b.bijgewerkt_op)}</span>
         </Link>
       ))}
     </div>

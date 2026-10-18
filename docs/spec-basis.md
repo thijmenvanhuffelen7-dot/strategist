@@ -1,10 +1,10 @@
 # Specificatie basis-app: Strategist OS (modules 1–6)
 
-> **Afwijkingen voor de lokale versie** (zie CLAUDE.md):
-> - Geen Supabase, geen login en geen Row Level Security. De data staat in een lokaal SQLite-bestand (Prisma), met dezelfde velden als in het datamodel hieronder. "users" wordt één profielrij.
-> - Uploads komen in `/uploads` in de projectmap, niet in Supabase Storage.
-> - De AI draait server-side via de Anthropic SDK (key in `.env.local`).
-> - Deellinks (module 2) en dergelijke werken alleen op je eigen computer, tenzij de app later ergens online wordt gezet.
+> **Afwijkingen van deze spec** (zie CLAUDE.md):
+> - Geen Supabase en geen Row Level Security. De data staat in een Postgres-database (Neon via Vercel, met Prisma), met dezelfde velden als in het datamodel hieronder. "users" wordt één profielrij.
+> - In plaats van accounts: één wachtwoord (APP_WACHTWOORD), want de app is alleen voor mij.
+> - Uploads komen in Vercel Blob, niet in Supabase Storage.
+> - De AI draait server-side via Groq (zie CLAUDE.md → AI-provider).
 
 ## Context
 Ik ben een (beginnende) creative strategist voor performance marketing (Meta-, TikTok- en YouTube Shorts-ads). Bouw een webapplicatie die mijn dagelijkse workflow ondersteunt: klantonderzoek doen, angles en hooks bedenken, creative briefs schrijven, inspiratie verzamelen (swipe file) en testresultaten bijhouden. De app moet AI gebruiken om analyses en teksten te genereren, maar ik moet alles kunnen bewerken en opslaan.

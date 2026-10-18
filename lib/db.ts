@@ -1,12 +1,29 @@
 // Alleen op de server gebruiken (server components, server actions, API routes).
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@/app/generated/prisma/client'
 
-const url = process.env.DATABASE_URL ?? 'file:./prisma/strategist.db'
+function maakClient() {
+  // Gepoolde verbinding (Neon via Vercel zet DATABASE_URL; oudere koppelingen POSTGRES_URL).
+  const connectionString = process.env.DATABASE_URL ?? process.env.POSTGRES_URL
+  if (!connectionString) {
+    throw new Error('Geen database ingesteld: zet DATABASE_URL in .env.local (lokaal) of koppel een database in Vercel. Zie README.')
+  }
+  return new PrismaClient({ adapter: new PrismaPg({ connectionString, max: 5 }) })
+}
 
-// Tijdens `next dev` wordt code steeds opnieuw geladen; hergebruik dan één verbinding.
+// Eén verbinding per serverproces (ook tijdens `next dev`, waar code steeds opnieuw wordt geladen).
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter: new PrismaBetterSqlite3({ url }) })
+function client() {
+  globalForPrisma.prisma ??= maakClient()
+  return globalForPrisma.prisma
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// De verbinding wordt pas gemaakt bij het eerste gebruik, zodat `next build` ook zonder database werkt.
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_doel, eigenschap) {
+    const c = client()
+    const waarde = Reflect.get(c, eigenschap)
+    return typeof waarde === 'function' ? waarde.bind(c) : waarde
+  },
+})

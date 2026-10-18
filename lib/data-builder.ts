@@ -1,6 +1,8 @@
 // Brief Builder-data uit de database, omgezet naar de vormen uit builder-types.
 import { connection } from 'next/server'
+import { vereisLogin } from './auth'
 import { prisma } from './db'
+import { beginVanVandaag } from './datum'
 import { toProject } from './data'
 import {
   legeBriefInhoud,
@@ -80,16 +82,15 @@ async function laatsteReview(projectId: string, refId: string): Promise<{ review
   return r ? { review: r.output as unknown as ReviewResultaat, aangemaakt_op: r.aangemaakt_op } : null
 }
 
-/** Tokens die vandaag (sinds middernacht) zijn gebruikt. */
+/** Tokens die vandaag (sinds middernacht Nederlandse tijd) zijn gebruikt. */
 export async function tokensVandaag(): Promise<number> {
-  const start = new Date()
-  start.setHours(0, 0, 0, 0)
-  const s = await prisma.aiOutput.aggregate({ where: { aangemaakt_op: { gte: start } }, _sum: { input_tokens: true, output_tokens: true } })
+  const s = await prisma.aiOutput.aggregate({ where: { aangemaakt_op: { gte: beginVanVandaag() } }, _sum: { input_tokens: true, output_tokens: true } })
   return (s._sum.input_tokens ?? 0) + (s._sum.output_tokens ?? 0)
 }
 
 export async function getBuilderData(projectId: string) {
   await connection()
+  await vereisLogin()
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     include: {
@@ -123,6 +124,7 @@ export type BuilderData = NonNullable<Awaited<ReturnType<typeof getBuilderData>>
 
 export async function getBriefDetail(briefId: string) {
   await connection()
+  await vereisLogin()
   const b = await prisma.brief.findUnique({ where: { id: briefId }, include: { project: true, angle: true, hook: true } })
   if (!b) return null
   const [v, r, vandaag] = await Promise.all([versies('brief', b.project_id, b.id), laatsteReview(b.project_id, b.id), tokensVandaag()])
@@ -141,6 +143,7 @@ export type BriefDetail = NonNullable<Awaited<ReturnType<typeof getBriefDetail>>
 /** Alle briefs over alle projecten, voor de Brief Builder-startpagina. */
 export async function getBriefsOverzicht() {
   await connection()
+  await vereisLogin()
   const rows = await prisma.brief.findMany({ orderBy: { bijgewerkt_op: 'desc' }, include: { project: { select: { naam: true } } } })
   return rows.map((b) => ({ ...toBrief(b), projectNaam: b.project.naam }))
 }
@@ -148,6 +151,7 @@ export async function getBriefsOverzicht() {
 /** Per project: hoe ver de Brief Builder is (voor de startpagina en de projecttabbladen). */
 export async function getBuilderVoortgang() {
   await connection()
+  await vereisLogin()
   const projects = await prisma.project.findMany({
     orderBy: { bijgewerkt_op: 'desc' },
     select: {

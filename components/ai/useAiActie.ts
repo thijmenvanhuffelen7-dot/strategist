@@ -47,6 +47,10 @@ export function useAiActie() {
           body: JSON.stringify(verzoek),
           signal: abort.current.signal,
         })
+        if (res.status === 401) {
+          setStaat((s) => ({ ...s, bezig: false, fout: { bericht: 'Je bent uitgelogd. Ververs de pagina en log opnieuw in.', opnieuw: false } }))
+          return undefined
+        }
         if (!res.ok || !res.body) throw new Error(`Server gaf status ${res.status}`)
         const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
         let buffer = ''

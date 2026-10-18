@@ -4,6 +4,10 @@ import { genereerAngles, genereerBrief, genereerHooks, kritischeReview, onderzoe
 import { AiFout } from '@/lib/ai/provider'
 import type { AiEvent } from '@/lib/ai/events'
 import { REVIEW_STAPPEN } from '@/lib/builder-types'
+import { isIngelogd } from '@/lib/auth'
+
+// Op Vercel: maximaal 5 minuten per AI-actie (grote klantdata + wachten op limieten kan even duren).
+export const maxDuration = 300
 
 const Verzoek = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('onderzoek'), projectId: z.string() }),
@@ -14,6 +18,7 @@ const Verzoek = z.discriminatedUnion('actie', [
 ])
 
 export async function POST(req: Request) {
+  if (!(await isIngelogd())) return Response.json({ fout: 'Niet ingelogd' }, { status: 401 })
   const parsed = Verzoek.safeParse(await req.json().catch(() => null))
   if (!parsed.success) return Response.json({ fout: 'Ongeldig verzoek' }, { status: 400 })
   const v = parsed.data

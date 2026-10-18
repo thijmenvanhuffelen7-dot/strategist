@@ -82,8 +82,8 @@ export function SettingsForm({ initial, ai }: { initial: Values; ai: AiInstellin
           <HardDrive className="size-4 text-zinc-400" /> Opslag
         </h2>
         <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-          Al je data staat in één bestand op je computer: <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">prisma/strategist.db</code>.
-          Uploads komen in de map <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">uploads/</code>. Kopieer die twee om een back-up te maken.
+          Je data staat in je eigen Postgres-database (Neon, gekoppeld via Vercel → Storage). Neon maakt zelf back-ups; een export van al je data
+          (JSON/CSV) komt in een latere fase.
         </p>
       </div>
     </div>

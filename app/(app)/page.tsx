@@ -5,6 +5,7 @@ import { getBriefTelling, getProfiel, getProjects } from '@/lib/data'
 import { EmptyState, PageHeader, Pill, Spinner, STATUS } from '@/components/ui'
 import { QuickActions } from '@/components/QuickActions'
 import { SampleProjectButton } from '@/components/projects/SampleProjectButton'
+import { kortDatum } from '@/lib/datum'
 
 export default function DashboardPage() {
   return (
@@ -59,7 +60,7 @@ async function DashboardInhoud() {
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.naam}</span>
                 {p.is_voorbeeld && <Pill color="violet">Voorbeeld</Pill>}
                 <span className="hidden text-xs text-zinc-500 sm:inline">
-                  {p.bijgewerkt_op.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                  {kortDatum(p.bijgewerkt_op)}
                 </span>
               </Link>
             ))}

@@ -8,6 +8,7 @@ import { doelLabel, type Project } from '@/lib/types'
 import { countEntries } from '@/lib/klantdata'
 import { Button, EmptyState, Pill } from '../ui'
 import { SampleProjectButton } from './SampleProjectButton'
+import { kortDatum } from '@/lib/datum'
 
 export function NewProjectButton() {
   const router = useRouter()
@@ -73,7 +74,7 @@ export function ProjectsList({ projects }: { projects: Project[] }) {
             </div>
             <div className="mt-3 flex justify-between border-t border-zinc-100 pt-3 text-xs text-zinc-500 dark:border-zinc-800">
               <span>{countEntries(p.klantdata)} klantdata-items</span>
-              <span>{p.bijgewerkt_op.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
+              <span>{kortDatum(p.bijgewerkt_op)}</span>
             </div>
           </Link>
         ))}

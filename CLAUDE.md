@@ -1,6 +1,6 @@
 # Strategist OS
 
-Een lokale webapp voor mijn werk als creative strategist (performance marketing: Meta, TikTok, YouTube Shorts).
+Een webapp voor mijn werk als creative strategist (performance marketing: Meta, TikTok, YouTube Shorts). Draait online op Vercel en lokaal met `npm run dev`.
 Ik ben geen ervaren programmeur. Leg dingen kort en in gewone taal uit.
 
 ## Specificaties
@@ -12,12 +12,12 @@ Lees de relevante spec voordat je aan een module begint. Wijk er niet van af zon
 
 ## Techniek
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Database: SQLite via Prisma (lokaal bestand, geen account nodig)
+- Database: Postgres via Prisma (Neon, aangemaakt via Vercel → Storage). Lokaal werk je met dezelfde online database (DATABASE_URL in .env.local).
 - AI: zie het blok "AI-provider" hieronder. Alleen server-side; keys komen nooit in de browser.
 - Validatie van AI-output met Zod
 - Grafieken met Recharts
-- Geen login nodig: de app draait alleen lokaal voor mij. Negeer de Supabase-, auth- en Row Level Security-onderdelen uit de specs; gebruik Prisma-modellen met dezelfde velden.
-- Uploads (screenshots, video's) opslaan in /uploads in de projectmap.
+- Login met één wachtwoord (APP_WACHTWOORD), want de app staat online. Geen gebruikersaccounts: de app is alleen voor mij. Negeer de Supabase-, auth- en Row Level Security-onderdelen uit de specs; gebruik Prisma-modellen met dezelfde velden.
+- Uploads (screenshots, video's) opslaan in Vercel Blob (vanaf fase 3), lokaal zonder Blob-token in /uploads.
 
 ## AI-provider
 - Gebruik Groq (gratis abonnement) via de OpenAI-compatibele API: base URL https://api.groq.com/openai/v1, met het `openai` npm-pakket.
@@ -40,11 +40,13 @@ Lees de relevante spec voordat je aan een module begint. Wijk er niet van af zon
 - Interface in het Nederlands.
 
 ## Starten
-npm run dev  → http://localhost:3000
+npm run dev  → http://localhost:3000 (vereist DATABASE_URL in .env.local, zie README)
 
 ## Technische notities (voor AI-assistenten)
 - Next.js 16 met `cacheComponents`: zie AGENTS.md en `node_modules/next/dist/docs/`. Databasequeries staan in `lib/data.ts`, beginnen met `await connection()` en worden in `<Suspense>` gerenderd. Bezochte pagina's blijven verborgen bewaard (React Activity): reset formulierstate na opslaan.
-- Prisma 7 + SQLite: Json-velden hebben geen `@default` (werkt niet op SQLite); standaardwaarden in code. Schema wijzigen: `npm run db:migrate`.
+- Prisma 7 + Postgres via `@prisma/adapter-pg`. Schema wijzigen: `npm run db:migrate` (maakt een migratie); migraties worden automatisch toegepast bij dev/build/start (`scripts/migreer.mjs`).
+- Login: `proxy.ts` stuurt door naar /login, maar elke datafunctie (`lib/data*.ts`), server action en API-route roept zelf `vereisLogin()`/`isIngelogd()` aan (`lib/auth.ts`). Nieuwe server actions/datafuncties: altijd `await vereisLogin()` als eerste regel. Zonder APP_WACHTWOORD is de app alleen in development open.
+- Datums tonen via `lib/datum.ts` (vaste tijdzone Europe/Amsterdam; Vercel draait in UTC).
 - Server actions in `lib/actions.ts` en `lib/builder-actions.ts` nemen alleen bekende velden over van de invoer.
 - AI: `lib/ai/run.ts` (vraagJson) doet limiet, streaming, 429 en Zod; acties in `lib/ai/acties.ts`; endpoint `app/api/ai/route.ts` streamt NDJSON-events; browser-kant `components/ai/useAiActie.ts`. Testen zonder key kan met `GROQ_BASE_URL` naar een nagebootste server.
 - Bewerkbare lijsten gebruiken `useServerState` + `useUitgesteld` (lib/use-server-state.ts): lokaal bewerken, automatisch opslaan zonder herladen; `wachtOpOpslaan()` vóór stapwissels en AI-acties.

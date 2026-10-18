@@ -2,6 +2,7 @@
 // Server actions: opslaan en verwijderen. Worden vanuit de browser aangeroepen, maar draaien op de server.
 import { revalidatePath } from 'next/cache'
 import { prisma } from './db'
+import { vereisLogin } from './auth'
 import { toProject } from './data'
 import { voorbeeldProject } from './sampleData'
 import { STANDAARD_DREMPELS, type ProjectInput } from './types'
@@ -34,6 +35,7 @@ function projectData(v: ProjectInput) {
 }
 
 export async function saveProject(id: string | null, values: ProjectInput): Promise<string> {
+  await vereisLogin()
   const data = projectData(values)
   if (!data.naam) throw new Error('Geef het project een naam.')
   const row = id ? await prisma.project.update({ where: { id }, data }) : await prisma.project.create({ data })
@@ -42,17 +44,20 @@ export async function saveProject(id: string | null, values: ProjectInput): Prom
 }
 
 export async function deleteProject(id: string) {
+  await vereisLogin()
   // Onderzoek, angles, hooks, briefs en tests worden automatisch mee verwijderd (onDelete: Cascade).
   await prisma.project.delete({ where: { id } })
   revalidatePath('/', 'layout')
 }
 
 export async function loadSampleProject(): Promise<string> {
+  await vereisLogin()
   return saveProject(null, voorbeeldProject)
 }
 
 /** Voor het zoekvenster (sneltoets /). */
 export async function searchProjects(q: string) {
+  await vereisLogin()
   const needle = q.trim().toLowerCase()
   const rows = await prisma.project.findMany({ orderBy: { bijgewerkt_op: 'desc' } })
   return rows
@@ -65,6 +70,7 @@ export async function searchProjects(q: string) {
 }
 
 export async function saveProfiel(values: { naam: string; standaard_taal: string; standaard_platform: string }) {
+  await vereisLogin()
   const profiel = {
     naam: tekst(values.naam),
     standaard_taal: tekst(values.standaard_taal) || 'Nederlands',

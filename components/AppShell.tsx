@@ -2,7 +2,8 @@
 import { Suspense, useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, FolderKanban, FileText, Bookmark, FlaskConical, Settings, Search, Menu, X, Sun, Moon, Monitor } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, FileText, Bookmark, FlaskConical, Settings, Search, Menu, X, Sun, Moon, Monitor, LogOut } from 'lucide-react'
+import { logout } from '@/lib/auth-actions'
 import { setTheme, useSystemThemeSync, useTheme, type ThemeChoice } from '@/lib/theme'
 import { isTypingTarget, triggerNew } from '@/lib/shortcuts'
 import { SearchPalette } from './SearchPalette'
@@ -16,7 +17,7 @@ const NAV = [
   { href: '/instellingen', label: 'Instellingen', icon: Settings },
 ]
 
-export function AppShell({ children, profiel }: { children: ReactNode; profiel: ReactNode }) {
+export function AppShell({ children, profiel, metLogin }: { children: ReactNode; profiel: ReactNode; metLogin: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const router = useRouter()
@@ -72,13 +73,22 @@ export function AppShell({ children, profiel }: { children: ReactNode; profiel: 
 
         <div className="border-t border-zinc-200 p-3 dark:border-zinc-800">
           <ThemeSwitch />
-          <Link
-            href="/instellingen"
-            onClick={() => setMobileOpen(false)}
-            className="mt-3 flex items-center gap-2 rounded-md p-1 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
-          >
-            {profiel}
-          </Link>
+          <div className="mt-3 flex items-center gap-1">
+            <Link
+              href="/instellingen"
+              onClick={() => setMobileOpen(false)}
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-md p-1 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
+            >
+              {profiel}
+            </Link>
+            {metLogin && (
+              <form action={logout}>
+                <button type="submit" title="Uitloggen" aria-label="Uitloggen" className="rounded p-1.5 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">
+                  <LogOut className="size-4" />
+                </button>
+              </form>
+            )}
+          </div>
           <p className="mt-3 hidden text-[11px] text-zinc-400 lg:block">
             <span className="kbd">N</span> nieuw · <span className="kbd">/</span> zoeken
           </p>

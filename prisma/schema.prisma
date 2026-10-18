@@ -1,7 +1,6 @@
 // Strategist OS – datamodel (zie docs/spec-basis.md → Datamodel).
-// Lokaal SQLite-bestand. Lijsten en geneste data staan in Json-velden.
-// Json-velden hebben geen @default (werkt niet op SQLite); standaardwaarden zet lib/data.
-// Geen users/auth: de app is voor één gebruiker op één computer.
+// Online Postgres-database (Neon via Vercel). Lijsten en geneste data staan in Json-velden.
+// Geen users-tabel: de app is voor één gebruiker, afgeschermd met één wachtwoord (APP_WACHTWOORD).
 
 generator client {
   provider = "prisma-client"
@@ -9,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // Eén rij (id = 1) met instellingen; vervangt "users" uit de spec.
@@ -18,8 +17,8 @@ model Profiel {
   naam               String?
   standaard_taal     String   @default("Nederlands")
   standaard_platform String   @default("Meta")
-  drempels           Json
-  tag_lijsten        Json
+  drempels           Json     @default("{\"hook_rate\":30,\"hold_rate\":10,\"ctr\":1,\"cpa\":30,\"roas\":2}")
+  tag_lijsten        Json     @default("{}")
   ai_model           String? // leeg = GROQ_MODEL uit .env.local of de standaard
   bijgewerkt_op      DateTime @updatedAt
 
@@ -34,12 +33,12 @@ model Project {
   url                  String?
   landingspagina_tekst String?
   doelgroep            String?
-  platforms            Json // string[]
+  platforms            Json @default("[]") // string[]
   doel                 String?
   taal                 String   @default("Nederlands")
-  concurrenten         Json // { naam, url }[]
+  concurrenten         Json @default("[]") // { naam, url }[]
   klantdata            String?
-  drempels             Json
+  drempels             Json @default("{}")
   is_voorbeeld         Boolean  @default(false)
   aangemaakt_op        DateTime @default(now())
   bijgewerkt_op        DateTime @updatedAt
@@ -57,11 +56,11 @@ model Project {
 model Research {
   id                String   @id @default(uuid())
   project_id        String   @unique
-  pijnpunten        Json
-  verlangens        Json
-  bezwaren          Json
-  aha_momenten      Json
-  klanttaal         Json
+  pijnpunten        Json @default("[]")
+  verlangens        Json @default("[]")
+  bezwaren          Json @default("[]")
+  aha_momenten      Json @default("[]")
+  klanttaal         Json @default("[]")
   bewustzijnsniveau Json?
   goedgekeurd       Boolean  @default(false)
   bijgewerkt_op     DateTime @updatedAt
@@ -119,7 +118,7 @@ model Brief {
   angle_id      String?
   hook_id       String?
   titel         String   @default("Naamloze brief")
-  inhoud        Json
+  inhoud        Json @default("{}")
   status        String   @default("concept") // concept | klaar | in_productie | live | gearchiveerd
   share_token   String?  @unique
   aangemaakt_op DateTime @default(now())
@@ -143,7 +142,7 @@ model SwipeItem {
   url           String?
   media_url     String? // pad binnen /uploads
   transcript    String?
-  tags          Json
+  tags          Json @default("{}")
   analyse       Json?
   notities      String?
   beoordeling   Int?
@@ -176,7 +175,7 @@ model Test {
   platform      String?
   live_datum    DateTime?
   status        String    @default("testen") // testen | winnaar | verliezer | gestopt
-  metrics       Json
+  metrics       Json @default("{}")
   hypothese     String?
   les           String?
   aangemaakt_op DateTime  @default(now())
