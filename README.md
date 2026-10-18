@@ -10,7 +10,7 @@ Lokale werkplek voor creative strategists (Meta, TikTok, YouTube Shorts): klanto
    ```bash
    npm install
    ```
-4. Vanaf fase 2: kopieer `.env.example` naar `.env.local` en vul je Anthropic API-key in.
+4. Vanaf fase 2: kopieer `.env.example` naar `.env.local` en vul je gratis Groq API-key in (console.groq.com).
 
 ## Starten
 

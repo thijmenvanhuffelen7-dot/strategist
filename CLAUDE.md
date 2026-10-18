@@ -13,11 +13,23 @@ Lees de relevante spec voordat je aan een module begint. Wijk er niet van af zon
 ## Techniek
 - Next.js (App Router) + TypeScript + Tailwind CSS
 - Database: SQLite via Prisma (lokaal bestand, geen account nodig)
-- AI: Anthropic SDK, alleen server-side (API routes / server actions). Key staat in .env.local als ANTHROPIC_API_KEY en komt nooit in de browser.
+- AI: zie het blok "AI-provider" hieronder. Alleen server-side; keys komen nooit in de browser.
 - Validatie van AI-output met Zod
 - Grafieken met Recharts
 - Geen login nodig: de app draait alleen lokaal voor mij. Negeer de Supabase-, auth- en Row Level Security-onderdelen uit de specs; gebruik Prisma-modellen met dezelfde velden.
 - Uploads (screenshots, video's) opslaan in /uploads in de projectmap.
+
+## AI-provider
+- Gebruik Groq (gratis abonnement) via de OpenAI-compatibele API: base URL https://api.groq.com/openai/v1, met het `openai` npm-pakket.
+- Key en model komen uit .env.local: GROQ_API_KEY en GROQ_MODEL. Nooit in de browser, alleen server-side.
+- Controleer op https://console.groq.com/docs/models welke modellen beschikbaar zijn en zet een goede standaard in .env.example. Het model moet ook in Instellingen te kiezen zijn.
+- Bouw één AI-laag in /lib/ai met een provider-interface, zodat ik later kan wisselen naar Anthropic (Claude) of OpenAI door alleen een instelling en key te veranderen. Geen Groq-specifieke code buiten /lib/ai.
+- Gebruik JSON-modus (response_format: json_object) en valideer met Zod. Bij ongeldige JSON: één keer automatisch opnieuw proberen met de foutmelding erbij.
+- Rekening houden met de gratis limieten (ongeveer 30 verzoeken/minuut en 8.000 tokens/minuut; exacte limieten staan in de console):
+  - Schat het aantal tokens vóór een verzoek. Te veel klantdata? Splits in stukken, analyseer per stuk en voeg de resultaten samen in een laatste verzoek.
+  - Bij een 429-fout (limiet bereikt): lees de retry-after-header, toon "Even wachten, limiet bereikt (X sec)" in de interface en probeer automatisch opnieuw.
+  - Stuur per AI-functie alleen de context mee die nodig is.
+- Toon per AI-actie hoeveel tokens er gebruikt zijn, zodat ik zie hoe dicht ik bij de daglimiet zit.
 
 ## Werkwijze
 - Werk per fase. Maak eerst een kort plan en wacht op mijn akkoord voordat je veel bestanden aanmaakt.

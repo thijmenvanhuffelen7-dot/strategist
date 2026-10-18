@@ -26,7 +26,9 @@ Laatst bijgewerkt: 18 oktober 2026
 
 ## Nog te doen (buiten de fases om)
 - `docs/spec-uitbreiding.md` (modules 7–10) ontbreekt nog in de repository.
-- `/lib/prompts` wordt aangemaakt in fase 2.
+- `/lib/prompts` en `/lib/ai` (Groq via OpenAI-compatibele API) worden aangemaakt in fase 2.
+- Fase 4: veld `parent_test_id` toevoegen aan tests (voor de iteratieboom van module 10).
+- Datamodel voor modules 7–10 toevoegen zodra `docs/spec-uitbreiding.md` er is.
 
 ## Bekende problemen / aandachtspunten
 - Back-up = het bestand `prisma/strategist.db` en de map `uploads/` kopiëren. JSON/CSV-export komt in fase 5.
