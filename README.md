@@ -1,4 +1,4 @@
-# Strategist OS
+# Creative Strategist OS
 
 Werkplek voor creative strategists (Meta, TikTok, YouTube Shorts): klantonderzoek, angles, hooks, creative briefs, swipe file en testlog.
 

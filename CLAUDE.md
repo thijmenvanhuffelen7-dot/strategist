@@ -1,4 +1,4 @@
-# Strategist OS
+# Creative Strategist OS
 
 Een webapp voor mijn werk als creative strategist (performance marketing: Meta, TikTok, YouTube Shorts). Draait online op Vercel en lokaal met `npm run dev`.
 Ik ben geen ervaren programmeur. Leg dingen kort en in gewone taal uit.

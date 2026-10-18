@@ -5,7 +5,7 @@ import { ConfirmProvider } from '@/components/ConfirmDialog'
 import { THEME_SCRIPT } from '@/lib/theme'
 
 export const metadata: Metadata = {
-  title: 'Strategist OS',
+  title: 'Creative Strategist OS',
   description: 'Werkplek voor creative strategists',
   robots: { index: false, follow: false },
 }

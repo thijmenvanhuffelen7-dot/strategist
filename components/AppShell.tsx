@@ -49,8 +49,8 @@ export function AppShell({ children, profiel, metLogin }: { children: ReactNode;
         }`}
       >
         <div className="flex h-14 items-center gap-2.5 px-4">
-          <div className="flex size-7 items-center justify-center rounded-md bg-accent-600 text-xs font-bold text-white">S</div>
-          <span className="text-sm font-semibold tracking-tight">Strategist OS</span>
+          <div className="flex size-7 items-center justify-center rounded-md bg-accent-600 text-[11px] font-bold text-white">CS</div>
+          <span className="truncate text-sm font-semibold tracking-tight">Creative Strategist OS</span>
           <button className="ml-auto rounded p-1 hover:bg-zinc-200 lg:hidden dark:hover:bg-zinc-800" onClick={() => setMobileOpen(false)} aria-label="Menu sluiten">
             <X className="size-4" />
           </button>
@@ -101,7 +101,7 @@ export function AppShell({ children, profiel, metLogin }: { children: ReactNode;
           <button className="rounded p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800" onClick={() => setMobileOpen(true)} aria-label="Menu openen">
             <Menu className="size-5" />
           </button>
-          <span className="text-sm font-semibold">Strategist OS</span>
+          <span className="truncate text-sm font-semibold">Creative Strategist OS</span>
           <button className="ml-auto rounded p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800" onClick={() => setSearchOpen(true)} aria-label="Zoeken">
             <Search className="size-5" />
           </button>

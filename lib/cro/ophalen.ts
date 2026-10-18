@@ -50,7 +50,7 @@ async function haalHtml(start: string): Promise<{ html: string; url: string }> {
         redirect: 'manual',
         signal: AbortSignal.timeout(TIMEOUT_MS),
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; StrategistOS-CRO-check/1.0)',
+          'User-Agent': 'Mozilla/5.0 (compatible; CreativeStrategistOS-CRO-check/1.0)',
           Accept: 'text/html,application/xhtml+xml',
           'Accept-Language': 'nl,en;q=0.8',
         },

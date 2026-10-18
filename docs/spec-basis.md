@@ -1,4 +1,4 @@
-# Specificatie basis-app: Strategist OS (modules 1–6)
+# Specificatie basis-app: Creative Strategist OS (modules 1–6)
 
 > **Afwijkingen van deze spec** (zie CLAUDE.md):
 > - Geen Supabase en geen Row Level Security. De data staat in een Postgres-database (Neon via Vercel, met Prisma), met dezelfde velden als in het datamodel hieronder. "users" wordt één profielrij.
