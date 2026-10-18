@@ -2,7 +2,9 @@
 import { useState, useTransition, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Pencil, Trash2, ExternalLink, Microscope, Lightbulb, Anchor, FileText, FlaskConical, Copy, Check } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, ExternalLink, FlaskConical, Copy, Check, FileText } from 'lucide-react'
+import type { BuilderData } from '@/lib/data-builder'
+import { AnglesTab, BriefsTab, HooksTab, OnderzoekTab } from './ProjectTabs'
 import { deleteProject } from '@/lib/actions'
 import { doelLabel, type Project } from '@/lib/types'
 import { countEntries } from '@/lib/klantdata'
@@ -20,7 +22,7 @@ const TABS = [
   { id: 'tests', label: 'Tests' },
 ] as const
 
-export function ProjectDetail({ project, initialTab }: { project: Project; initialTab: string }) {
+export function ProjectDetail({ project, initialTab, builder }: { project: Project; initialTab: string; builder: Pick<BuilderData, 'research' | 'angles' | 'hooks' | 'briefs'> }) {
   const router = useRouter()
   const [tab, setTab] = useState(initialTab)
   const [deleting, startDeleting] = useTransition()
@@ -67,6 +69,9 @@ export function ProjectDetail({ project, initialTab }: { project: Project; initi
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="primary" icon={<FileText className="size-4" />} onClick={() => router.push(`/briefs/project/${project.id}`)}>
+            Brief Builder
+          </Button>
           <Button icon={<Pencil className="size-4" />} onClick={() => router.push(`/projecten/${project.id}/bewerken`)}>
             Bewerken
           </Button>
@@ -95,28 +100,10 @@ export function ProjectDetail({ project, initialTab }: { project: Project; initi
       </div>
 
       {tab === 'overzicht' && <Overzicht project={project} />}
-      {tab === 'onderzoek' && (
-        <Komt icon={<Microscope />} title="Nog geen klantonderzoek">
-          In de Brief Builder (stap 1) analyseert de AI je klantdata: pijnpunten, verlangens, bezwaren, aha-momenten, klanttaal en
-          bewustzijnsniveau. Het resultaat verschijnt hier. <em>Beschikbaar in fase 2.</em>
-        </Komt>
-      )}
-      {tab === 'angles' && (
-        <Komt icon={<Lightbulb />} title="Nog geen angles">
-          Op basis van het onderzoek genereert de AI 8–10 angles met score en onderbouwing. <em>Beschikbaar in fase 2.</em>
-        </Komt>
-      )}
-      {tab === 'hooks' && (
-        <Komt icon={<Anchor />} title="Nog geen hooks">
-          Per gekozen angle 5 hooks met gesproken tekst, overlay en eerste shot. Gemarkeerde hooks komen in je hook-bibliotheek.{' '}
-          <em>Beschikbaar in fase 2.</em>
-        </Komt>
-      )}
-      {tab === 'briefs' && (
-        <Komt icon={<FileText />} title="Nog geen briefs">
-          Volledige creative briefs met script-tabel, testvariaties en succescriteria. <em>Beschikbaar in fase 2.</em>
-        </Komt>
-      )}
+      {tab === 'onderzoek' && <OnderzoekTab projectId={project.id} research={builder.research} />}
+      {tab === 'angles' && <AnglesTab projectId={project.id} angles={builder.angles} />}
+      {tab === 'hooks' && <HooksTab projectId={project.id} hooks={builder.hooks} angles={builder.angles} />}
+      {tab === 'briefs' && <BriefsTab projectId={project.id} briefs={builder.briefs} />}
       {tab === 'tests' && (
         <Komt icon={<FlaskConical />} title="Nog geen tests">
           Houd hier creative-tests, metrics en lessen bij, met CSV-import uit Meta en TikTok Ads Manager. <em>Beschikbaar in fase 4.</em>

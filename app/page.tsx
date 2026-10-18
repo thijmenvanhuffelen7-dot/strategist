@@ -1,8 +1,8 @@
 import { Suspense, type ReactNode } from 'react'
 import Link from 'next/link'
 import { FolderKanban, FileText, Bookmark, Sparkles, FlaskConical } from 'lucide-react'
-import { getProfiel, getProjects } from '@/lib/data'
-import { EmptyState, PageHeader, Pill, Spinner } from '@/components/ui'
+import { getBriefTelling, getProfiel, getProjects } from '@/lib/data'
+import { EmptyState, PageHeader, Pill, Spinner, STATUS } from '@/components/ui'
 import { QuickActions } from '@/components/QuickActions'
 import { SampleProjectButton } from '@/components/projects/SampleProjectButton'
 
@@ -31,12 +31,16 @@ async function Welkom() {
 }
 
 async function DashboardInhoud() {
-  const projects = await getProjects()
+  const [projects, briefs] = await Promise.all([getProjects(), getBriefTelling()])
+  const aantalBriefs = Object.values(briefs).reduce((a, b) => a + b, 0)
+  const perStatus = Object.entries(briefs)
+    .map(([s, n]) => `${n} ${STATUS[s]?.label.toLowerCase() ?? s}`)
+    .join(' · ')
   return (
     <>
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Actieve projecten" value={projects.length} icon={<FolderKanban />} />
-        <Stat label="Briefs" value="—" icon={<FileText />} hint="fase 2" />
+        <Stat label="Briefs" value={aantalBriefs} icon={<FileText />} hint={perStatus || undefined} />
         <Stat label="Lopende tests" value="—" icon={<FlaskConical />} hint="fase 4" />
         <Stat label="Swipe-items" value="—" icon={<Bookmark />} hint="fase 3" />
       </div>
@@ -73,7 +77,7 @@ function Stat({ label, value, icon, hint }: { label: string; value: string | num
         <span className="text-xs font-medium text-zinc-500">{label}</span>
         {icon}
       </div>
-      <div className="mt-2 flex items-baseline gap-2">
+      <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
         <span className="text-2xl font-semibold tabular-nums">{value}</span>
         {hint && <span className="text-xs text-zinc-400">{hint}</span>}
       </div>

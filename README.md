@@ -10,7 +10,7 @@ Lokale werkplek voor creative strategists (Meta, TikTok, YouTube Shorts): klanto
    ```bash
    npm install
    ```
-4. Vanaf fase 2: kopieer `.env.example` naar `.env.local` en vul je gratis Groq API-key in (console.groq.com).
+4. Kopieer `.env.example` naar `.env.local` en vul je gratis Groq API-key in (console.groq.com → API Keys). Zonder key werkt alles behalve de AI-knoppen.
 
 ## Starten
 

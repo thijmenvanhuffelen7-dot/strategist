@@ -20,6 +20,7 @@ model Profiel {
   standaard_platform String   @default("Meta")
   drempels           Json
   tag_lijsten        Json
+  ai_model           String? // leeg = GROQ_MODEL uit .env.local of de standaard
   bijgewerkt_op      DateTime @updatedAt
 
   @@map("profiel")

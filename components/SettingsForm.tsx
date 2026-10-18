@@ -1,14 +1,16 @@
 'use client'
 import { useState, useTransition } from 'react'
-import { HardDrive } from 'lucide-react'
+import { HardDrive, Sparkles } from 'lucide-react'
 import { saveProfiel } from '@/lib/actions'
+import { bewaarAiModel } from '@/lib/builder-actions'
 import { setTheme, useTheme, type ThemeChoice } from '@/lib/theme'
 import { PLATFORMS, TALEN } from '@/lib/types'
 import { Button, ErrorBox } from './ui'
 
 type Values = { naam: string; standaard_taal: string; standaard_platform: string }
+type AiInstellingen = { provider: string; ingesteld: boolean; modellen: { id: string; label: string }[]; gekozen: string; standaard: string }
 
-export function SettingsForm({ initial }: { initial: Values }) {
+export function SettingsForm({ initial, ai }: { initial: Values; ai: AiInstellingen }) {
   const [values, setValues] = useState(initial)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<unknown>(null)
@@ -73,6 +75,8 @@ export function SettingsForm({ initial }: { initial: Values }) {
         </div>
       </div>
 
+      <AiKeuze ai={ai} />
+
       <div className="card space-y-2 p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <HardDrive className="size-4 text-zinc-400" /> Opslag
@@ -81,6 +85,59 @@ export function SettingsForm({ initial }: { initial: Values }) {
           Al je data staat in één bestand op je computer: <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">prisma/strategist.db</code>.
           Uploads komen in de map <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">uploads/</code>. Kopieer die twee om een back-up te maken.
         </p>
+      </div>
+    </div>
+  )
+}
+
+function AiKeuze({ ai }: { ai: AiInstellingen }) {
+  const bekend = ai.modellen.some((m) => m.id === ai.gekozen)
+  const [keuze, setKeuze] = useState(ai.gekozen === '' ? '' : bekend ? ai.gekozen : 'eigen')
+  const [eigen, setEigen] = useState(bekend ? '' : ai.gekozen)
+  const [saved, setSaved] = useState(false)
+  const [pending, startTransition] = useTransition()
+  const opslaan = () =>
+    startTransition(async () => {
+      await bewaarAiModel(keuze === 'eigen' ? eigen : keuze)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 1500)
+    })
+  return (
+    <div className="card space-y-3 p-5">
+      <h2 className="flex items-center gap-2 text-sm font-semibold">
+        <Sparkles className="size-4 text-zinc-400" /> AI
+      </h2>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        Provider: {ai.provider} ·{' '}
+        {ai.ingesteld ? (
+          <span className="text-emerald-600">API-key gevonden</span>
+        ) : (
+          <span className="text-amber-600">geen API-key: zet GROQ_API_KEY in .env.local en herstart de app</span>
+        )}
+      </p>
+      <div>
+        <label className="label" htmlFor="ai-model">Model</label>
+        <select id="ai-model" className="input" value={keuze} onChange={(e) => setKeuze(e.target.value)}>
+          <option value="">Standaard ({ai.standaard})</option>
+          {ai.modellen.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
+          ))}
+          <option value="eigen">Ander model-ID…</option>
+        </select>
+      </div>
+      {keuze === 'eigen' && (
+        <div>
+          <label className="label" htmlFor="ai-model-eigen">Model-ID (zie console.groq.com/docs/models)</label>
+          <input id="ai-model-eigen" className="input font-mono text-xs" value={eigen} onChange={(e) => setEigen(e.target.value)} placeholder="bijv. openai/gpt-oss-120b" />
+        </div>
+      )}
+      <div className="flex items-center gap-3">
+        <Button variant="primary" loading={pending} onClick={opslaan} disabled={keuze === 'eigen' && !eigen.trim()}>
+          Model opslaan
+        </Button>
+        {saved && <span className="text-sm text-emerald-600">Opgeslagen</span>}
       </div>
     </div>
   )

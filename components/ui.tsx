@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
+import Link from 'next/link'
 import { Loader2, AlertTriangle } from 'lucide-react'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerSolid'
@@ -40,6 +41,17 @@ export function Button({
       {loading ? <Loader2 className="size-4 animate-spin" /> : icon}
       {children}
     </button>
+  )
+}
+
+/** Link die eruitziet als een knop. */
+export function ButtonLink({ href, variant = 'secondary', size = 'md', icon, children }: { href: string; variant?: Variant; size?: 'sm' | 'md'; icon?: ReactNode; children: ReactNode }) {
+  const sizes = size === 'sm' ? 'h-7 px-2.5 text-xs gap-1.5' : 'h-9 px-3.5 text-sm gap-2'
+  return (
+    <Link href={href} className={`inline-flex shrink-0 items-center justify-center rounded-md font-medium transition-colors ${sizes} ${variants[variant]}`}>
+      {icon}
+      {children}
+    </Link>
   )
 }
 

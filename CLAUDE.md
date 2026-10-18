@@ -45,4 +45,6 @@ npm run dev  → http://localhost:3000
 ## Technische notities (voor AI-assistenten)
 - Next.js 16 met `cacheComponents`: zie AGENTS.md en `node_modules/next/dist/docs/`. Databasequeries staan in `lib/data.ts`, beginnen met `await connection()` en worden in `<Suspense>` gerenderd. Bezochte pagina's blijven verborgen bewaard (React Activity): reset formulierstate na opslaan.
 - Prisma 7 + SQLite: Json-velden hebben geen `@default` (werkt niet op SQLite); standaardwaarden in code. Schema wijzigen: `npm run db:migrate`.
-- Server actions in `lib/actions.ts` nemen alleen bekende velden over van de invoer.
+- Server actions in `lib/actions.ts` en `lib/builder-actions.ts` nemen alleen bekende velden over van de invoer.
+- AI: `lib/ai/run.ts` (vraagJson) doet limiet, streaming, 429 en Zod; acties in `lib/ai/acties.ts`; endpoint `app/api/ai/route.ts` streamt NDJSON-events; browser-kant `components/ai/useAiActie.ts`. Testen zonder key kan met `GROQ_BASE_URL` naar een nagebootste server.
+- Bewerkbare lijsten gebruiken `useServerState` + `useUitgesteld` (lib/use-server-state.ts): lokaal bewerken, automatisch opslaan zonder herladen; `wachtOpOpslaan()` vóór stapwissels en AI-acties.

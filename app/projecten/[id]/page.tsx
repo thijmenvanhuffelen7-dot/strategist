@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { getProject } from '@/lib/data'
+import { getBuilderData } from '@/lib/data-builder'
 import { Spinner } from '@/components/ui'
 import { ProjectDetail } from '@/components/projects/ProjectDetail'
 
@@ -15,8 +16,8 @@ export default function ProjectPage({ params, searchParams }: PageProps<'/projec
 async function Inhoud({ params, searchParams }: Pick<PageProps<'/projecten/[id]'>, 'params' | 'searchParams'>) {
   const { id } = await params
   const { tab } = await searchParams
-  const project = await getProject(id)
-  if (!project) notFound()
+  const [project, builder] = await Promise.all([getProject(id), getBuilderData(id)])
+  if (!project || !builder) notFound()
   // key: bij een ander project begint de pagina opnieuw (o.a. met het juiste tabblad).
-  return <ProjectDetail key={project.id} project={project} initialTab={typeof tab === 'string' ? tab : 'overzicht'} />
+  return <ProjectDetail key={project.id} project={project} initialTab={typeof tab === 'string' ? tab : 'overzicht'} builder={builder} />
 }

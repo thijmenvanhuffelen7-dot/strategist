@@ -39,3 +39,10 @@ export async function getProfiel(): Promise<Profiel> {
     tag_lijsten: (row?.tag_lijsten as Record<string, string[]> | null) ?? {},
   }
 }
+
+/** Aantal briefs per status (voor het dashboard). */
+export async function getBriefTelling(): Promise<Record<string, number>> {
+  await connection()
+  const rijen = await prisma.brief.groupBy({ by: ['status'], _count: { _all: true } })
+  return Object.fromEntries(rijen.map((r) => [r.status, r._count._all]))
+}
