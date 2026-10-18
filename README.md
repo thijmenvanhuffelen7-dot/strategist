@@ -8,7 +8,7 @@ Draait online op **Vercel** met een **Postgres-database** en is afgeschermd met 
 
 1. **Framework:** staat in `vercel.json` (Next.js). Controleer bij **Settings → Build and Deployment** dat "Output Directory" niet op `dist` staat (zet de override uit).
 2. **Database:** Vercel → je project → **Storage → Create Database → Neon (Postgres)** → Free plan → **Connect** aan dit project (alle omgevingen). Vercel zet `DATABASE_URL` en `DATABASE_URL_UNPOOLED` dan zelf klaar.
-3. **Uploadopslag (voor fase 3):** **Storage → Create → Blob** → koppel aan dit project.
+3. **Uploadopslag:** **Storage → Create → Blob** → koppel aan dit project. Nodig voor screenshots en video's in de Swipe File. Vercel zet `BLOB_READ_WRITE_TOKEN` zelf.
 4. **Variabelen:** **Settings → Environment Variables**, voeg toe:
    - `APP_WACHTWOORD`: een sterk wachtwoord om in te loggen
    - `GROQ_API_KEY`: je gratis key van console.groq.com

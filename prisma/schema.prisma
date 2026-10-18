@@ -141,7 +141,8 @@ model SwipeItem {
   merk          String?
   platform      String?
   url           String?
-  media_url     String? // pad binnen /uploads
+  media_url     String? // "blob:<pad>" (Vercel Blob, privé) of "lokaal:<bestandsnaam>" (map /uploads)
+  media_type    String? // MIME-type, bijv. image/png of video/mp4
   transcript    String?
   tags          Json     @default("{}")
   analyse       Json?

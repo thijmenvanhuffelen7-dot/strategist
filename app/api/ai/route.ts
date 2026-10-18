@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import { genereerAngles, genereerBrief, genereerHooks, kritischeReview, onderzoek } from '@/lib/ai/acties'
 import { croCheck } from '@/lib/ai/cro'
+import { analyseerSwipe } from '@/lib/ai/swipe'
 import { AiFout } from '@/lib/ai/provider'
 import type { AiEvent } from '@/lib/ai/events'
 import { REVIEW_STAPPEN } from '@/lib/builder-types'
@@ -15,7 +16,8 @@ const Verzoek = z.discriminatedUnion('actie', [
   z.object({ actie: z.literal('angles'), projectId: z.string() }),
   z.object({ actie: z.literal('hooks'), projectId: z.string(), angleId: z.string() }),
   z.object({ actie: z.literal('brief'), projectId: z.string(), angleId: z.string(), hookId: z.string(), briefId: z.string().optional() }),
-  z.object({ actie: z.literal('review'), projectId: z.string().optional(), stap: z.enum(REVIEW_STAPPEN), briefId: z.string().optional(), croId: z.string().optional() }),
+  z.object({ actie: z.literal('review'), projectId: z.string().optional(), stap: z.enum(REVIEW_STAPPEN), briefId: z.string().optional(), croId: z.string().optional(), swipeId: z.string().optional() }),
+  z.object({ actie: z.literal('swipe'), swipeId: z.string(), projectId: z.string().optional(), screenshot: z.boolean().optional() }),
   z.object({ actie: z.literal('cro'), croId: z.string() }),
 ])
 
@@ -42,6 +44,7 @@ export async function POST(req: Request) {
         else if (v.actie === 'hooks') await genereerHooks(v.projectId, v.angleId, emit, req.signal)
         else if (v.actie === 'brief') resultaat = await genereerBrief(v, emit, req.signal)
         else if (v.actie === 'cro') await croCheck(v.croId, emit, req.signal)
+        else if (v.actie === 'swipe') await analyseerSwipe(v, emit, req.signal)
         else await kritischeReview(v, emit, req.signal)
         emit({ type: 'klaar', resultaat })
       } catch (err) {

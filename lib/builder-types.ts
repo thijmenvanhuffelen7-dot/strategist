@@ -141,7 +141,7 @@ export interface ReviewResultaat {
   score: number
 }
 
-export const REVIEW_STAPPEN = ['onderzoek', 'angles', 'hooks', 'brief', 'cro'] as const
+export const REVIEW_STAPPEN = ['onderzoek', 'angles', 'hooks', 'brief', 'cro', 'swipe'] as const
 export type ReviewStap = (typeof REVIEW_STAPPEN)[number]
 
 export interface AiVersie {
@@ -207,4 +207,56 @@ export interface CroAnalyse {
 export function croPrioriteit(p: Pick<CroPunt, 'impact' | 'moeite'>) {
   const w = { hoog: 3, midden: 2, laag: 1 }
   return w[p.impact] * 2 - w[p.moeite]
+}
+
+// --- Swipe File ------------------------------------------------------------------
+
+export const SWIPE_PLATFORMS = ['Meta', 'TikTok', 'YouTube Shorts', 'Instagram Reels', 'Overig'] as const
+export const BRANCHES = ['beauty & verzorging', 'gezondheid & slaap', 'food & drinks', 'fashion', 'wonen', 'sport & fitness', 'tech & gadgets', 'huisdieren', 'baby & kind', 'diensten & apps', 'overig'] as const
+export const EMOTIES = ['frustratie', 'angst', 'schaamte', 'hoop', 'nieuwsgierigheid', 'opluchting', 'trots', 'herkenning', 'humor', 'urgentie', 'verlangen'] as const
+
+export interface SwipeTags {
+  branche?: string
+  format?: string
+  hook_type?: string
+  angle_type?: string
+  emotie?: string
+}
+export const TAG_VELDEN = [
+  { key: 'branche', label: 'Branche', opties: BRANCHES },
+  { key: 'format', label: 'Format', opties: FORMAT_TYPES },
+  { key: 'hook_type', label: 'Hook-type', opties: HOOK_TYPES },
+  { key: 'angle_type', label: 'Angle-type', opties: ANGLE_TYPES },
+  { key: 'emotie', label: 'Emotie', opties: EMOTIES },
+] as const
+
+export interface SwipeAnalyse {
+  hook: { gesproken: string; visueel: string; type: string }
+  angle: { naam: string; type: string; kernboodschap: string }
+  structuur: { tijd: string; fase: string; wat: string }[]
+  emotie: string
+  pijnpunt: string
+  bewustzijnsniveau: string
+  redenen: string[]
+  toepassingen: { idee: string; hoe: string }[]
+  tags: SwipeTags
+  project?: { id: string; naam: string } | null
+  met_screenshot?: boolean
+}
+
+export interface SwipeItemData {
+  id: string
+  titel: string
+  merk: string | null
+  platform: string | null
+  url: string | null
+  media_url: string | null
+  media_type: string | null
+  media_link: string | null
+  transcript: string | null
+  tags: SwipeTags
+  analyse: SwipeAnalyse | null
+  notities: string | null
+  beoordeling: number | null
+  aangemaakt_op: Date
 }

@@ -7,8 +7,9 @@ import { vereisLogin } from './auth'
 import type { Prisma } from '@/app/generated/prisma/client'
 import { BRIEF_STATUSSEN, legeBriefInhoud, type BriefInhoud, type ResearchData } from './builder-types'
 import { briefOutputNaarInhoud, slaAnglesOp, slaOnderzoekOp } from './ai/acties'
-import { anglesSchema, briefSchema, croSchema, onderzoekSchema } from './ai/schemas'
+import { anglesSchema, briefSchema, croSchema, onderzoekSchema, swipeSchema } from './ai/schemas'
 import { croOutputNaarAnalyse } from './ai/cro'
+import { swipeOutputNaarAnalyse } from './ai/swipe'
 
 const json = (v: unknown) => v as Prisma.InputJsonValue
 const MAX_GESELECTEERD = 5
@@ -161,12 +162,18 @@ export async function verwijderBrief(id: string) {
 
 // --- Versies -----------------------------------------------------------------
 
-/** Zet een eerdere AI-uitvoer terug (onderzoek, angles, brief of CRO-check). */
+/** Zet een eerdere AI-uitvoer terug (onderzoek, angles, brief, CRO-check of swipe-analyse). */
 export async function herstelVersie(aiOutputId: string) {
   await vereisLogin()
   const v = await prisma.aiOutput.findUniqueOrThrow({ where: { id: aiOutputId } })
   if (v.functie === 'cro' && v.ref_id) {
     await prisma.croCheck.update({ where: { id: v.ref_id }, data: { analyse: json(croOutputNaarAnalyse(croSchema.parse(v.output))) } })
+    return
+  }
+  if (v.functie === 'swipe' && v.ref_id) {
+    const o = v.output as { project?: { id: string; naam: string } | null; met_screenshot?: boolean }
+    const analyse = swipeOutputNaarAnalyse(swipeSchema.parse(v.output), o.project ?? null, Boolean(o.met_screenshot))
+    await prisma.swipeItem.update({ where: { id: v.ref_id }, data: { analyse: json(analyse) } })
     return
   }
   if (!v.project_id) throw new Error('Deze versie hoort bij geen project.')

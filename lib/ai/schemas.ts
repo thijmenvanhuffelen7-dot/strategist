@@ -1,7 +1,7 @@
 // Zod-schema's voor de AI-uitvoer, plus een voorbeeld dat in de prompt meegaat zodat het model de vorm kent.
 // Schema's zijn bewust vergevingsgezind bij kleine afwijkingen (bijv. score als tekst), maar streng op de kern.
 import { z } from 'zod'
-import { ANGLE_TYPES, BEWUSTZIJNSNIVEAUS, CRO_CATEGORIEEN, FREQUENTIES, HOOK_TYPES, NIVEAUS } from '../builder-types'
+import { ANGLE_TYPES, BEWUSTZIJNSNIVEAUS, BRANCHES, CRO_CATEGORIEEN, EMOTIES, FORMAT_TYPES, FREQUENTIES, HOOK_TYPES, NIVEAUS } from '../builder-types'
 
 const tekst = z.coerce.string().catch('')
 const tekstLijst = z.array(z.coerce.string()).catch([])
@@ -170,4 +170,37 @@ export const croVoorbeeld = {
     },
   ],
   testideeen: [{ hypothese: 'Als we … dan … omdat …', variant: '…', metric: 'conversieratio' }],
+}
+
+export const swipeSchema = z.object({
+  hook: z.object({ gesproken: tekst, visueel: tekst, type: kiesUit(HOOK_TYPES, 'directe aanspreking') }),
+  angle: z.object({ naam: z.coerce.string(), type: kiesUit(ANGLE_TYPES, 'pijnpunt'), kernboodschap: tekst }),
+  structuur: z.array(z.object({ tijd: tekst, fase: tekst, wat: tekst })).catch([]),
+  emotie: tekst,
+  pijnpunt: tekst,
+  bewustzijnsniveau: kiesUit(BEWUSTZIJNSNIVEAUS, 'problem aware'),
+  redenen: z.array(z.coerce.string()).min(1),
+  toepassingen: z.array(z.object({ idee: z.coerce.string(), hoe: tekst })).catch([]),
+  tags: z
+    .object({
+      branche: kiesUit(BRANCHES, 'overig'),
+      format: kiesUit(FORMAT_TYPES, 'UGC talking head'),
+      hook_type: kiesUit(HOOK_TYPES, 'directe aanspreking'),
+      angle_type: kiesUit(ANGLE_TYPES, 'pijnpunt'),
+      emotie: kiesUit(EMOTIES, 'herkenning'),
+    })
+    .catch({ branche: 'overig', format: 'UGC talking head', hook_type: 'directe aanspreking', angle_type: 'pijnpunt', emotie: 'herkenning' }),
+})
+export type SwipeOutput = z.infer<typeof swipeSchema>
+
+export const swipeVoorbeeld = {
+  hook: { gesproken: 'letterlijk de eerste zin', visueel: 'wat je in de eerste 1–3 sec ziet', type: HOOK_TYPES.join(' | ') },
+  angle: { naam: '…', type: ANGLE_TYPES.join(' | '), kernboodschap: 'één zin' },
+  structuur: [{ tijd: '0–3s', fase: 'hook | probleem | oplossing | bewijs | bezwaar | CTA', wat: '…' }],
+  emotie: '…',
+  pijnpunt: '…',
+  bewustzijnsniveau: BEWUSTZIJNSNIVEAUS.join(' | '),
+  redenen: ['…', '…', '…'],
+  toepassingen: [{ idee: '…', hoe: 'concreet voor het gekozen project' }],
+  tags: { branche: BRANCHES.join(' | '), format: FORMAT_TYPES.join(' | '), hook_type: HOOK_TYPES.join(' | '), angle_type: ANGLE_TYPES.join(' | '), emotie: EMOTIES.join(' | ') },
 }

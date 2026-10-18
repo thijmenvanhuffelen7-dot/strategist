@@ -1,12 +1,12 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FolderKanban, Search } from 'lucide-react'
+import { Bookmark, FolderKanban, Search } from 'lucide-react'
 import { searchProjects } from '@/lib/actions'
 
 type Result = Awaited<ReturnType<typeof searchProjects>>[number]
 
-/** Globale zoekfunctie (sneltoets "/"). Zoekt nu in projecten; later ook in briefs, swipe file en testlog. */
+/** Globale zoekfunctie (sneltoets "/"). Zoekt in projecten en de swipe file. */
 export function SearchPalette({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Result[]>([])
@@ -33,7 +33,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
 
   const go = (r: Result | undefined) => {
     if (!r) return
-    router.push(`/projecten/${r.id}`)
+    router.push(r.href)
     onClose()
   }
 
@@ -59,7 +59,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                 setActive((a) => Math.max(a - 1, 0))
               } else if (e.key === 'Enter') go(results[active])
             }}
-            placeholder="Zoek in projecten, klantdata…"
+            placeholder="Zoek in projecten, klantdata, swipe file…"
             className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
           />
           <span className="kbd">Esc</span>
@@ -67,13 +67,13 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
         <ul className="max-h-80 overflow-y-auto p-1.5">
           {results.length === 0 && <li className="px-3 py-6 text-center text-sm text-zinc-500">Geen resultaten</li>}
           {results.map((r, i) => (
-            <li key={r.id}>
+            <li key={`${r.soort}-${r.id}`}>
               <button
                 onMouseEnter={() => setActive(i)}
                 onClick={() => go(r)}
                 className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-left ${i === active ? 'bg-zinc-100 dark:bg-zinc-800' : ''}`}
               >
-                <FolderKanban className="size-4 shrink-0 text-zinc-400" />
+                {r.soort === 'swipe' ? <Bookmark className="size-4 shrink-0 text-zinc-400" /> : <FolderKanban className="size-4 shrink-0 text-zinc-400" />}
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium">{r.naam}</span>
                   {r.omschrijving && <span className="block truncate text-xs text-zinc-500">{r.omschrijving}</span>}

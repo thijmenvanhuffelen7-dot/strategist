@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from 'react'
 import Link from 'next/link'
 import { FolderKanban, FileText, Bookmark, Sparkles, FlaskConical } from 'lucide-react'
 import { getBriefTelling, getProfiel, getProjects } from '@/lib/data'
+import { getSwipeAantal } from '@/lib/data-swipe'
 import { EmptyState, PageHeader, Pill, Spinner, STATUS } from '@/components/ui'
 import { QuickActions } from '@/components/QuickActions'
 import { SampleProjectButton } from '@/components/projects/SampleProjectButton'
@@ -32,7 +33,7 @@ async function Welkom() {
 }
 
 async function DashboardInhoud() {
-  const [projects, briefs] = await Promise.all([getProjects(), getBriefTelling()])
+  const [projects, briefs, swipes] = await Promise.all([getProjects(), getBriefTelling(), getSwipeAantal()])
   const aantalBriefs = Object.values(briefs).reduce((a, b) => a + b, 0)
   const perStatus = Object.entries(briefs)
     .map(([s, n]) => `${n} ${STATUS[s]?.label.toLowerCase() ?? s}`)
@@ -43,7 +44,7 @@ async function DashboardInhoud() {
         <Stat label="Actieve projecten" value={projects.length} icon={<FolderKanban />} />
         <Stat label="Briefs" value={aantalBriefs} icon={<FileText />} hint={perStatus || undefined} />
         <Stat label="Lopende tests" value="—" icon={<FlaskConical />} hint="fase 4" />
-        <Stat label="Swipe-items" value="—" icon={<Bookmark />} hint="fase 3" />
+        <Stat label="Swipe-items" value={swipes} icon={<Bookmark />} />
       </div>
 
       {projects.length === 0 ? (

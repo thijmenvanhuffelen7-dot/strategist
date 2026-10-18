@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AiEvent } from '@/lib/ai/events'
+import type { ReviewStap } from '@/lib/builder-types'
 import { wachtOpOpslaan } from '@/lib/use-server-state'
 
 export type AiVerzoek =
@@ -9,8 +10,9 @@ export type AiVerzoek =
   | { actie: 'angles'; projectId: string }
   | { actie: 'hooks'; projectId: string; angleId: string }
   | { actie: 'brief'; projectId: string; angleId: string; hookId: string; briefId?: string }
-  | { actie: 'review'; projectId?: string; stap: 'onderzoek' | 'angles' | 'hooks' | 'brief' | 'cro'; briefId?: string; croId?: string }
+  | { actie: 'review'; projectId?: string; stap: ReviewStap; briefId?: string; croId?: string; swipeId?: string }
   | { actie: 'cro'; croId: string }
+  | { actie: 'swipe'; swipeId: string; projectId?: string; screenshot?: boolean }
 
 export interface AiStaat {
   bezig: boolean

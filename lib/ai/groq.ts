@@ -44,7 +44,9 @@ async function* chat(req: ChatRequest): AsyncIterable<ChatChunk> {
     model: req.model,
     messages: [
       { role: 'system' as const, content: req.system },
-      { role: 'user' as const, content: req.user },
+      req.afbeelding
+        ? { role: 'user' as const, content: [{ type: 'text' as const, text: req.user }, { type: 'image_url' as const, image_url: { url: req.afbeelding } }] }
+        : { role: 'user' as const, content: req.user },
     ],
     max_completion_tokens: req.maxTokens,
     temperature: 0.7,
@@ -85,6 +87,8 @@ export const groq: AiProvider = {
   id: 'groq',
   naam: 'Groq',
   standaardModel: 'openai/gpt-oss-120b',
+  // Niet gecontroleerd (Groq-documentatie niet bereikbaar bij het bouwen); aan te passen met GROQ_VISIE_MODEL.
+  visieModel: process.env.GROQ_VISIE_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct',
   // Niet gecontroleerd tegen de Groq-documentatie (niet bereikbaar bij het bouwen); exacte lijst: console.groq.com/docs/models.
   modellen: [
     { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B (standaard, sterkst)' },

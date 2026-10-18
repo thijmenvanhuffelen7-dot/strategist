@@ -10,6 +10,8 @@ export interface ChatRequest {
   /** Tekst streamen zodra hij binnenkomt. Valt terug op niet-streamen als de provider dat met JSON niet ondersteunt. */
   stream: boolean
   signal?: AbortSignal
+  /** Optionele afbeelding (https-URL of data-URL) voor modellen die afbeeldingen kunnen lezen. */
+  afbeelding?: string
 }
 
 export type ChatChunk =
@@ -27,6 +29,8 @@ export interface AiProvider {
   id: string
   naam: string
   standaardModel: string
+  /** Model dat afbeeldingen kan lezen (voor screenshots); leeg = niet ondersteund. */
+  visieModel?: string
   modellen: ModelOptie[]
   /** Maximaal aantal tokens (invoer + uitvoer) per minuut; daar plannen we verzoeken omheen. */
   tokensPerMinuut: number

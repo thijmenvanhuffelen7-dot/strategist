@@ -13,7 +13,7 @@ export function QuickActions() {
       <Button icon={<FileText className="size-4" />} onClick={() => router.push('/briefs')}>
         Nieuwe brief
       </Button>
-      <Button icon={<Bookmark className="size-4" />} onClick={() => router.push('/swipe')}>
+      <Button icon={<Bookmark className="size-4" />} onClick={() => router.push('/swipe/nieuw')}>
         Ad toevoegen
       </Button>
     </>

@@ -235,8 +235,9 @@ export async function genereerBrief(
 // Kritische review
 // ---------------------------------------------------------------------------
 
-export async function kritischeReview(params: { projectId?: string; stap: ReviewStap; briefId?: string; croId?: string }, emit: Emit, signal?: AbortSignal) {
+export async function kritischeReview(params: { projectId?: string; stap: ReviewStap; briefId?: string; croId?: string; swipeId?: string }, emit: Emit, signal?: AbortSignal) {
   if (params.stap === 'cro') return croReview(params.croId, emit, signal)
+  if (params.stap === 'swipe') return swipeReview(params.swipeId, emit, signal)
   if (!params.projectId) throw new AiFout('Project ontbreekt.', false)
   const { project, research } = await laadProject(params.projectId)
   let werk: string
@@ -286,4 +287,22 @@ async function croReview(croId: string | undefined, emit: Emit, signal?: AbortSi
     signal,
   })
   await bewaarOutput('review', check.project_id, check.id, res.data, res.verbruik, res.model, emit)
+}
+
+/** Review van een swipe-analyse. */
+async function swipeReview(swipeId: string | undefined, emit: Emit, signal?: AbortSignal) {
+  const item = swipeId ? await prisma.swipeItem.findUnique({ where: { id: swipeId } }) : null
+  if (!item?.analyse) throw new AiFout('Er is nog geen analyse om te beoordelen.', false)
+  emit({ type: 'status', bericht: 'Creative director leest mee…' })
+  const res = await vraagJson({
+    systeem: await getSysteemprompt('review'),
+    gebruiker: `# Te beoordelen: analyse van een swipe-ad ("${item.titel}")\n${JSON.stringify(item.analyse)}\n\n# Transcript van de ad\n${(item.transcript ?? '(geen)').slice(0, 2500)}`,
+    schema: reviewSchema,
+    voorbeeld: reviewVoorbeeld,
+    maxTokens: 1800,
+    emit,
+    signal,
+  })
+  const projectId = (item.analyse as { project?: { id: string } | null }).project?.id ?? null
+  await bewaarOutput('review', projectId, item.id, res.data, res.verbruik, res.model, emit)
 }

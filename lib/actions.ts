@@ -55,18 +55,25 @@ export async function loadSampleProject(): Promise<string> {
   return saveProject(null, voorbeeldProject)
 }
 
-/** Voor het zoekvenster (sneltoets /). */
+/** Voor het zoekvenster (sneltoets /): zoekt in projecten en de swipe file. */
 export async function searchProjects(q: string) {
   await vereisLogin()
   const needle = q.trim().toLowerCase()
-  const rows = await prisma.project.findMany({ orderBy: { bijgewerkt_op: 'desc' } })
-  return rows
+  const bevat = (...velden: (string | null | undefined)[]) => !needle || velden.some((f) => f?.toLowerCase().includes(needle))
+  const [projecten, swipes] = await Promise.all([
+    prisma.project.findMany({ orderBy: { bijgewerkt_op: 'desc' } }),
+    prisma.swipeItem.findMany({ orderBy: { aangemaakt_op: 'desc' } }),
+  ])
+  const p = projecten
     .map(toProject)
-    .filter((p) =>
-      !needle || [p.naam, p.omschrijving, p.doelgroep, p.klantdata, p.landingspagina_tekst].some((f) => f?.toLowerCase().includes(needle)),
-    )
-    .slice(0, 8)
-    .map((p) => ({ id: p.id, naam: p.naam, omschrijving: p.omschrijving ?? '' }))
+    .filter((x) => bevat(x.naam, x.omschrijving, x.doelgroep, x.klantdata, x.landingspagina_tekst))
+    .slice(0, needle ? 6 : 5)
+    .map((x) => ({ soort: 'project' as const, id: x.id, naam: x.naam, omschrijving: x.omschrijving ?? '', href: `/projecten/${x.id}` }))
+  const s = swipes
+    .filter((x) => bevat(x.titel, x.merk, x.transcript, x.notities, JSON.stringify(x.tags), x.analyse ? JSON.stringify(x.analyse) : ''))
+    .slice(0, needle ? 6 : 3)
+    .map((x) => ({ soort: 'swipe' as const, id: x.id, naam: x.titel, omschrijving: [x.merk, x.platform].filter(Boolean).join(' · '), href: `/swipe/${x.id}` }))
+  return [...p, ...s]
 }
 
 export async function saveProfiel(values: { naam: string; standaard_taal: string; standaard_platform: string }) {

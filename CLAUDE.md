@@ -18,7 +18,7 @@ Lees de relevante spec voordat je aan een module begint. Wijk er niet van af zon
 - Validatie van AI-output met Zod
 - Grafieken met Recharts
 - Login met één wachtwoord (APP_WACHTWOORD), want de app staat online. Geen gebruikersaccounts: de app is alleen voor mij. Negeer de Supabase-, auth- en Row Level Security-onderdelen uit de specs; gebruik Prisma-modellen met dezelfde velden.
-- Uploads (screenshots, video's) opslaan in Vercel Blob (vanaf fase 3), lokaal zonder Blob-token in /uploads.
+- Uploads (screenshots, video's) in Vercel Blob (privé), lokaal zonder Blob-token in /uploads. In de database staat een verwijzing `blob:<pad>` of `lokaal:<naam>`; tonen via `mediaLink()` in `lib/opslag.ts` (alleen server-side, na login).
 
 ## AI-provider
 - Gebruik Groq (gratis abonnement) via de OpenAI-compatibele API: base URL https://api.groq.com/openai/v1, met het `openai` npm-pakket.

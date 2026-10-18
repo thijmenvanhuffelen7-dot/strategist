@@ -15,6 +15,8 @@ export interface VraagOpties<S extends z.ZodType> {
   maxTokens: number
   emit: Emit
   signal?: AbortSignal
+  /** Afbeelding meesturen (gebruikt dan het visiemodel van de provider). */
+  afbeelding?: string
 }
 
 export interface VraagResultaat<T> {
@@ -47,14 +49,16 @@ export function tokenBudget() {
 export async function vraagJson<S extends z.ZodType>(opts: VraagOpties<S>): Promise<VraagResultaat<z.infer<S>>> {
   const provider = getProvider()
   if (!provider.isIngesteld()) throw new AiFout(provider.ontbrekendeKeyMelding, false)
-  const model = await getModel(provider)
+  if (opts.afbeelding && !provider.visieModel) throw new AiFout('Deze AI-provider kan geen afbeeldingen lezen.', false)
+  const model = opts.afbeelding ? provider.visieModel! : await getModel(provider)
   const systeem = `${opts.systeem}\n\n${jsonInstructie(opts.voorbeeld)}`
   let gebruiker = opts.gebruiker
   const verbruik = { input: 0, output: 0 }
   let limietPogingen = 0
 
   for (let poging = 0; poging < 2; ) {
-    const schatting = schatTokens(systeem + gebruiker) + opts.maxTokens
+    // Een afbeelding telt ook mee in het limiet; ruwe schatting.
+    const schatting = schatTokens(systeem + gebruiker) + opts.maxTokens + (opts.afbeelding ? 1500 : 0)
     if (schatting > tokenBudget()) {
       throw new AiFout(
         `Dit verzoek is te groot voor het limiet van ${provider.tokensPerMinuut.toLocaleString('nl-NL')} tokens per minuut (geschat ${schatting.toLocaleString('nl-NL')}). Probeer minder tekst.`,
@@ -73,7 +77,7 @@ export async function vraagJson<S extends z.ZodType>(opts: VraagOpties<S>): Prom
     let tekst = ''
     let gemeld = false
     try {
-      for await (const chunk of provider.chat({ model, system: systeem, user: gebruiker, maxTokens: opts.maxTokens, json: true, stream: true, signal: opts.signal })) {
+      for await (const chunk of provider.chat({ model, system: systeem, user: gebruiker, maxTokens: opts.maxTokens, json: true, stream: true, signal: opts.signal, afbeelding: opts.afbeelding })) {
         if (chunk.type === 'text') {
           tekst += chunk.text
           opts.emit({ type: 'tekst', tekst: chunk.text })

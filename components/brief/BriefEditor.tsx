@@ -15,10 +15,22 @@ import { Review } from '../ai/Review'
 import { Versies } from '../ai/Versies'
 import { useAiActie } from '../ai/useAiActie'
 import type { AiInfo } from '../ai/types'
+import type { SwipeItemData } from '@/lib/builder-types'
+import { ReferentieAds } from './ReferentieAds'
 
 const FASES = ['hook', 'probleem', 'oplossing', 'bewijs', 'bezwaar', 'CTA']
 
-export function BriefEditor({ detail, ai }: { detail: BriefDetail; ai: AiInfo }) {
+export function BriefEditor({
+  detail,
+  ai,
+  referenties,
+  swipeKeuzes,
+}: {
+  detail: BriefDetail
+  ai: AiInfo
+  referenties: SwipeItemData[]
+  swipeKeuzes: { id: string; titel: string; merk: string | null }[]
+}) {
   const { brief, project, angle, hook } = detail
   const router = useRouter()
   const confirm = useConfirm()
@@ -228,6 +240,8 @@ export function BriefEditor({ detail, ai }: { detail: BriefDetail; ai: AiInfo })
             </Button>
           </div>
         </Sectie>
+
+        <ReferentieAds briefId={brief.id} ads={referenties} keuzes={swipeKeuzes} />
 
         <Review projectId={project.id} stap="brief" briefId={brief.id} laatste={detail.review} ai={ai} />
       </div>
