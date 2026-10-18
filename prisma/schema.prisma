@@ -1,0 +1,217 @@
+// Strategist OS – datamodel (zie docs/spec-basis.md → Datamodel).
+// Lokaal SQLite-bestand. Lijsten en geneste data staan in Json-velden.
+// Json-velden hebben geen @default (werkt niet op SQLite); standaardwaarden zet lib/data.
+// Geen users/auth: de app is voor één gebruiker op één computer.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Eén rij (id = 1) met instellingen; vervangt "users" uit de spec.
+model Profiel {
+  id                 Int      @id @default(1)
+  naam               String?
+  standaard_taal     String   @default("Nederlands")
+  standaard_platform String   @default("Meta")
+  drempels           Json
+  tag_lijsten        Json
+  bijgewerkt_op      DateTime @updatedAt
+
+  @@map("profiel")
+}
+
+model Project {
+  id                   String   @id @default(uuid())
+  naam                 String
+  omschrijving         String?
+  prijs                String?
+  url                  String?
+  landingspagina_tekst String?
+  doelgroep            String?
+  platforms            Json // string[]
+  doel                 String?
+  taal                 String   @default("Nederlands")
+  concurrenten         Json // { naam, url }[]
+  klantdata            String?
+  drempels             Json
+  is_voorbeeld         Boolean  @default(false)
+  aangemaakt_op        DateTime @default(now())
+  bijgewerkt_op        DateTime @updatedAt
+
+  research   Research?
+  angles     Angle[]
+  hooks      Hook[]
+  briefs     Brief[]
+  tests      Test[]
+  ai_outputs AiOutput[]
+
+  @@map("projects")
+}
+
+model Research {
+  id                String   @id @default(uuid())
+  project_id        String   @unique
+  pijnpunten        Json
+  verlangens        Json
+  bezwaren          Json
+  aha_momenten      Json
+  klanttaal         Json
+  bewustzijnsniveau Json?
+  goedgekeurd       Boolean  @default(false)
+  bijgewerkt_op     DateTime @updatedAt
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@map("research")
+}
+
+model Angle {
+  id            String   @id @default(uuid())
+  project_id    String
+  naam          String
+  type          String?
+  kernboodschap String?
+  doelgroep     String?
+  onderbouwing  String?
+  risico        String?
+  score         Int?
+  geselecteerd  Boolean  @default(false)
+  eigen         Boolean  @default(false)
+  aangemaakt_op DateTime @default(now())
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  hooks   Hook[]
+  briefs  Brief[]
+
+  @@index([project_id])
+  @@map("angles")
+}
+
+model Hook {
+  id            String   @id @default(uuid())
+  angle_id      String?
+  project_id    String
+  gesproken     String?
+  overlay       String?
+  eerste_shot   String?
+  type          String?
+  ster          Boolean  @default(false)
+  aangemaakt_op DateTime @default(now())
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  angle   Angle?  @relation(fields: [angle_id], references: [id], onDelete: SetNull)
+  briefs  Brief[]
+
+  @@index([project_id])
+  @@index([angle_id])
+  @@map("hooks")
+}
+
+model Brief {
+  id            String   @id @default(uuid())
+  project_id    String
+  angle_id      String?
+  hook_id       String?
+  titel         String   @default("Naamloze brief")
+  inhoud        Json
+  status        String   @default("concept") // concept | klaar | in_productie | live | gearchiveerd
+  share_token   String?  @unique
+  aangemaakt_op DateTime @default(now())
+  bijgewerkt_op DateTime @updatedAt
+
+  project     Project          @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  angle       Angle?           @relation(fields: [angle_id], references: [id], onDelete: SetNull)
+  hook        Hook?            @relation(fields: [hook_id], references: [id], onDelete: SetNull)
+  tests       Test[]
+  swipe_links BriefSwipeLink[]
+
+  @@index([project_id])
+  @@map("briefs")
+}
+
+model SwipeItem {
+  id            String   @id @default(uuid())
+  titel         String
+  merk          String?
+  platform      String?
+  url           String?
+  media_url     String? // pad binnen /uploads
+  transcript    String?
+  tags          Json
+  analyse       Json?
+  notities      String?
+  beoordeling   Int?
+  aangemaakt_op DateTime @default(now())
+
+  brief_links BriefSwipeLink[]
+
+  @@map("swipe_items")
+}
+
+model BriefSwipeLink {
+  brief_id String
+  swipe_id String
+
+  brief Brief     @relation(fields: [brief_id], references: [id], onDelete: Cascade)
+  swipe SwipeItem @relation(fields: [swipe_id], references: [id], onDelete: Cascade)
+
+  @@id([brief_id, swipe_id])
+  @@map("brief_swipe_links")
+}
+
+model Test {
+  id            String    @id @default(uuid())
+  project_id    String
+  brief_id      String?
+  naam          String
+  angle         String?
+  hook          String?
+  format        String?
+  platform      String?
+  live_datum    DateTime?
+  status        String    @default("testen") // testen | winnaar | verliezer | gestopt
+  metrics       Json
+  hypothese     String?
+  les           String?
+  aangemaakt_op DateTime  @default(now())
+  bijgewerkt_op DateTime  @updatedAt
+
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  brief   Brief?  @relation(fields: [brief_id], references: [id], onDelete: SetNull)
+
+  @@index([project_id])
+  @@map("tests")
+}
+
+// Aangepaste systeemprompts; zonder rij geldt het bestand in /lib/prompts als standaard.
+model PromptTemplate {
+  id            String   @id @default(uuid())
+  functie       String   @unique
+  systeemprompt String
+  bijgewerkt_op DateTime @updatedAt
+
+  @@map("prompt_templates")
+}
+
+// Elke AI-uitvoer met tijdstempel en tokenverbruik, zodat eerdere versies terug te zetten zijn.
+model AiOutput {
+  id            String   @id @default(uuid())
+  project_id    String?
+  functie       String
+  ref_id        String?
+  output        Json
+  model         String?
+  input_tokens  Int?
+  output_tokens Int?
+  aangemaakt_op DateTime @default(now())
+
+  project Project? @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@index([functie, project_id, aangemaakt_op])
+  @@map("ai_outputs")
+}

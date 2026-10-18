@@ -1,8 +1,27 @@
-node_modules
-dist
-.env
-.env.local
-*.local
+# afhankelijkheden
+/node_modules
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# omgevingsvariabelen (API-key!)
+.env*
+!.env.example
+
+# lokale database en uploads (jouw data)
+/prisma/*.db
+/prisma/*.db-journal
+/uploads/*
+!/uploads/.gitkeep
+
+# gegenereerde Prisma-client
+/app/generated/prisma
+
+# overig
 .DS_Store
-dist-artifact
-artifact
+*.pem
+npm-debug.log*

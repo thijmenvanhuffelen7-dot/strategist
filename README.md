@@ -1,51 +1,40 @@
 # Strategist OS
 
-Werkplek voor creative strategists (Meta, TikTok, YouTube Shorts): klantonderzoek, angles, hooks, creative briefs, swipe file en testlog.
+Lokale werkplek voor creative strategists (Meta, TikTok, YouTube Shorts): klantonderzoek, angles, hooks, creative briefs, swipe file en testlog.
 
-**Stack:** React + TypeScript + Tailwind CSS (Vite). Ingebouwde opslag in de browser (IndexedDB), dus geen account, database of server nodig.
+## Eerste keer installeren
 
-## Status
-
-| Fase | Inhoud | Status |
-|---|---|---|
-| 1 | Projecten, basislayout, navigatie, ingebouwde opslag + back-up | ✅ |
-| 2 | Brief Builder stap 1–4 met AI | – |
-| 3 | Swipe File met AI-analyse | – |
-| 4 | Testlog met CSV-import, grafieken en AI-analyse | – |
-| 5 | Dashboard, instellingen, export en deellinks | – |
+1. Installeer **Node.js** (versie 20 of hoger) via https://nodejs.org (kies "LTS").
+2. Download dit project (groene knop **Code → Download ZIP** op GitHub, of `git clone`), en open een terminal in de projectmap.
+3. Installeer de onderdelen:
+   ```bash
+   npm install
+   ```
+4. Vanaf fase 2: kopieer `.env.example` naar `.env.local` en vul je Anthropic API-key in.
 
 ## Starten
 
 ```bash
-npm install
-npm run dev      # http://localhost:5173
+npm run dev
 ```
 
-## Online versie (claude.ai)
+Open daarna http://localhost:3000. De database (`prisma/strategist.db`) wordt bij de eerste start vanzelf aangemaakt.
 
-```bash
-npm run build:artifact   # → artifact/strategist-os.html (één zelfstandig bestand)
-```
+## Handige commando's
 
-Dit bestand wordt gepubliceerd als privé claude.ai-pagina. Daar is de routering intern (MemoryRouter)
-en vervangt "Back-up kopiëren" het downloaden, omdat downloads daar geblokkeerd zijn.
+| Commando | Wat het doet |
+|---|---|
+| `npm run dev` | App starten |
+| `npm run build` | Controleren of alles goed bouwt |
+| `npm run lint` | Code controleren op fouten |
+| `npm run db:studio` | Database bekijken in de browser |
 
-## Opslag
+## Je data
 
-Alle data (projecten, onderzoek, briefs, media, …) staat lokaal in je browser, per apparaat.
-Via **Instellingen → Opslag en back-up** maak je een back-up (downloaden of kopiëren) en zet je die terug,
-bijvoorbeeld om naar een ander apparaat over te stappen. Browserdata wissen = data kwijt, dus maak regelmatig een back-up.
+Alles staat op je eigen computer: de database in `prisma/strategist.db` en uploads in `uploads/`. Kopieer die twee om een back-up te maken. Ze komen niet in git.
 
-## Sneltoetsen
+## Documentatie
 
-- `N` – nieuw item (op de projectenpagina: nieuw project)
-- `/` – zoeken
-
-## Projectstructuur
-
-```
-src/
-  components/   Layout (zijbalk), zoekpalet, UI-bouwstenen (Button, Pill, EmptyState…)
-  lib/          db.ts (IndexedDB-opslag), types, data-hooks, voorbeelddata, thema, sneltoetsen
-  pages/        Dashboard, projecten (lijst/formulier/detail), instellingen
-```
+- `CLAUDE.md`: werkafspraken en techniek
+- `docs/spec-basis.md`: specificatie modules 1–6
+- `docs/voortgang.md`: wat af is en wat nog moet
